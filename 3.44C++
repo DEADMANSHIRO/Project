@@ -1,0 +1,38 @@
+#include <iostream>
+#include <math.h>
+
+using namespace std;
+
+//функция для рассчета значения ряда
+float cosinus(double x, int n){
+ double result=0.0;
+ int sign=1;
+ double power=1;
+ double factorial=1;
+
+for (int i=0; i<n; ++i){
+    result += sign * power/factorial;
+    sign *= -1;
+    power *= x * x;
+    factorial *= (2*(i+1))*(2*(i+1)-1);
+}
+return result;
+}
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+    double x;//значение аргумента косинуса в радианах
+    int n;//кол-во членов ряда
+    double cos_value;
+    double cos_valueR;
+
+
+    cout << "Введите x:";
+    cin >> x;
+    cout << "Введите n:";
+    cin >> n;
+    cos_value=cos(x);
+    cos_valueR=cosinus(x,n);
+    cout << "Значение косинуса на компьютере: " << cos_value << "." << "Значение косинуса по формуле ряда:" << cos_valueR << endl;
+    return 0;
+}
