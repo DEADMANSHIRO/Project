@@ -1,0 +1,26 @@
+#include <iostream>
+
+using namespace std;
+
+int main()
+
+{
+    setlocale(LC_ALL,"Rus");
+    double ves,rost,IMT;
+    const int criticalMinimum=18, criticalMaximum=25;
+    cout << "Введите вес подопытного в килограммах:";
+    cin >> ves;
+    cout << "Введите рост подопытного в метрах:";
+    cin >> rost;
+    IMT=2*(ves/rost);
+    if (IMT < criticalMinimum){
+        cout << "Индекс массы тела меньше крутого значения :(";
+    }
+    if (IMT > criticalMaximum){
+        cout << "Индекс массы тела больше крутого значения :(";
+    }
+    else {
+        cout << "Индекс массы тела входит в диапазон крутых значений :)";
+    }
+    return 0;
+}
