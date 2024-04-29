@@ -1,0 +1,40 @@
+#include <iostream>
+#include <sstream>
+
+using namespace std;
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+    //Здесь p1,p2,p3,p4 - удельное сопротивление Алюминия, Вольфрама, Меди и Стали соответственно.
+    const  double  p1=2.8e-8;
+    const  double  p2=5.5e-8;
+    const  double  p3=1.78e-8;
+    const  double  p4=1.3e-7;
+    double p,l,R,S;
+    string input;
+
+    cout << p1 << " " << p2 << " " << p3 << " " << p4 << endl;
+    cout <<"Введите значения удельного сопротивления, длины и сечения выбранного материала: R, S, l=";
+    getline(cin, input);
+    stringstream ss(input);
+    ss >> R >> S >> l;
+    p=(R*S)/l;
+    if ((p-p1)==0) {
+        cout << "Алюминий"<<"\n";
+    }
+    else if ((p-p2)==0) {
+        cout << "Вольфрам"<<"\n";
+    }
+    else if ((p-p3)==0) {
+        cout << "Медь"<<"\n";
+    }
+    else if ((p-p4)==0) {
+        cout << "Сталь"<<"\n";
+    }
+    else {
+        cout << "Материал не удалось идентифицировать";
+    }
+
+    return 0;
+}
