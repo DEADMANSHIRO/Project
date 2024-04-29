@@ -1,0 +1,31 @@
+#include <iostream>
+#include <iomanip>
+
+using namespace std;
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+    int i = 0;
+    float T0, Tn, Tk, Tf, Tr, dT, Tf50;
+    cout << "Введите начальное значение температуры: ";
+    cin >> Tn;
+    cout << "Введите конечное значение температуры: ";
+    cin >> Tk;
+    cout << "Введите значение шага для температуры по Цельсию: ";
+    cin >> dT;
+    cout << "____________________________________________\n";
+    cout << setw(10) << "T0 |" << setw(10) << "Tf |" << setw(10) << "Tr |\n";
+    cout << "____________________________________________\n";
+    for (T0 = Tn; T0 <= Tk; T0 += dT)
+    {
+        Tf = T0 * (9 / 5); // Температура по Фаренгейту
+        Tr = T0 * 0.8;         // Температура по Реомюру
+        i++;
+        cout << " | " << setw(4) << T0 << " | " << setw(10) << fixed << setprecision(3) << Tf << " | " << setw(10) << fixed << setprecision(3) << Tr << " |\n";
+        if (Tf<50)Tf50++;
+    }
+    cout << "____________________________________________\n";
+    cout << "Меньше 50: " << Tf50;
+    return 0;
+}
