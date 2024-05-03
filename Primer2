@@ -1,0 +1,35 @@
+#include <iostream> 
+#include <iomanip> 
+#include <stdio.h> 
+using namespace std; 
+ 
+int main() 
+{ 
+ setlocale(LC_ALL,"Rus"); 
+ int i,nb=0; 
+ float Pn,Pk,dP,P,cost,s=0; 
+ cout « "Введите значение Pn: "; 
+ cin » Pn; 
+ cout « "Введите значение Pk: "; 
+ cin » Pk; 
+ cout « "Введтие значение dP: "; 
+ cin » dP; 
+ cout « "«Стоимость пересылки грузов»"«endl; 
+ cout «"________________________________ "«endl; 
+ cout «setw(3)«" | "«setw(4)«" i "«setw(1)«" | "«setw(3)«"вес"«setw(5)«"|"«setw(6)«"стоимость"«setw(6)«" | "«endl; 
+ cout «"________________________________ "«endl; 
+for (P=Pn; P<=Pk;P+=dP) 
+{ 
+cost=P*53.5; 
+i++; 
+cout«" | "« setw(4)«i«" | "«setprecision(3)«setw(6)«P«" | "«setw(10)«setprecision(10)«cost«" |"«endl; 
+s=s+P; 
+if(cost>200)nb++; 
+} 
+cout « "________________________________ "«"\n"; 
+s=s/i; 
+cout « "Количество строк i: " « i « ";\n" « "Число строк, в которых стоимость больше 200 рублей: " « nb « ";\n" « "Средний вес посылки: "« s « endl; 
+ 
+ 
+ return 0; 
+}
