@@ -1,0 +1,183 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <vector>
+
+using namespace std;
+
+class Spisok
+{
+    private:
+        struct Person
+        {
+            string name;
+            string lastname;
+            string patronomic;
+            int birthYear;
+        };
+
+            vector<Person> people;
+
+
+        public:
+        void addPerson(const string &lastname,
+                       const string &name,
+                       const string &patronomic,
+                       int birthYear)
+        {
+            Person newPerson;
+            newPerson.lastname = lastname;
+            newPerson.name = name;
+            newPerson.patronomic = patronomic;
+            newPerson.birthYear = birthYear;
+            people.push_back(newPerson);
+        }
+
+        void PrintList()
+        {
+            cout<< "\n" <<endl;
+            cout << "Список Людей: " << endl;
+            for (const auto &Person : people)
+            {
+                cout << endl;
+                cout << Person.lastname
+                << " "
+                << Person.name
+                << " "
+                << Person.patronomic
+                << " "
+                << Person.birthYear;
+            }
+        }
+
+        void PrintLaterBornPeople(int year)
+        {
+            cout << "\n" << endl;
+            cout << "Люди родившиеся после " << " " << year << " " << ":" << " " << endl;
+            for (const auto& person : people)
+                {
+                    if (person.birthYear > year)
+                        {
+                            cout << person.lastname
+                            << " "
+                            << person.lastname
+                            << " "
+                            << person.name
+                            << ", "
+                            << person.birthYear
+                            << endl;
+                        }
+                }
+        }
+
+
+        friend int CompareLastNames(const Spisok &list1, const Spisok &list2);
+
+
+        int CompareLastNames(const Spisok &list1, const Spisok &list2)
+        {
+            int count = 0;
+            for (const auto &person1 : list1.people)
+            {
+                for (const auto &person2 : list2.people)
+                {
+                    if (person1.lastname == person2.lastname)
+                    {
+                        count++;
+                        break;
+                    }
+                }
+            }
+        return count;
+        }
+        int Sravnenie() const
+        {
+            int count = 0;
+
+            // Сравниваем фамилии в списке
+            for (size_t i = 0; i < people.size(); ++i)
+            {
+                for (size_t j = i + 1; j < people.size(); ++j)
+                {
+                    if (people[i].lastname == people[j].lastname)
+                    {
+                    count++;
+                    }
+                }
+            }
+
+    return count;
+}
+};
+
+
+int main()
+{
+    Spisok list1;
+    Spisok list2;
+
+    setlocale(LC_ALL,"Rus");
+
+    ifstream file1("list1.txt");
+        if (file1.is_open())
+        {
+            string line;
+            while (getline(file1, line))
+            {
+                stringstream ss(line);
+                string lastName, firstName, middleName;
+                int birthYear;
+                ss >> lastName >> firstName >> middleName >> birthYear;
+                list1.addPerson(lastName, firstName, middleName, birthYear);
+            }
+            file1.close();
+        }
+        else
+        {
+            cout << "Unable to open file list1.txt" << endl;
+            return 1;
+        }
+
+    // Чтение данных из файла для второго списка
+    ifstream file2("list2.txt");
+    if (file2.is_open())
+        {
+            string line;
+            while (getline(file2, line))
+            {
+                stringstream ss(line);
+                string lastName, firstName, middleName;
+                int birthYear;
+                ss >> lastName >> firstName >> middleName >> birthYear;
+                list2.addPerson(lastName, firstName, middleName, birthYear);
+            }
+            file2.close();
+        }
+        else
+        {
+            cout << "Unable to open file list2.txt" << endl;
+            return 1;
+        }
+
+        list1.PrintList();
+        list2.PrintList();
+
+        int sameLastNames = list1.CompareLastNames(list1, list2);
+        cout << endl;
+        cout << "\n" <<"Кол-во одинаковых фамилий в списках: " << sameLastNames << endl;
+
+
+        list1.PrintLaterBornPeople(1990);
+        list2.PrintLaterBornPeople(1990);
+
+        int sameLastNamesInList1 = list1.Sravnenie();
+        cout << endl;
+        cout << "Количество одинаковых фамилий в первом списке: " << sameLastNamesInList1 << endl;
+
+        int sameLastNamesInList2 = list2.Sravnenie();
+        cout << endl;
+        cout << "Количество одинаковых фамилий во втором списке: " << sameLastNamesInList2 << endl;
+
+    return 0;
+}
