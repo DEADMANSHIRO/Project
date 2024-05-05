@@ -139,7 +139,6 @@ int main()
             return 1;
         }
 
-    // Чтение данных из файла для второго списка
     ifstream file2("list2.txt");
     if (file2.is_open())
         {
