@@ -1,0 +1,121 @@
+#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <SFML/System.hpp>
+#include <iostream>
+
+using namespace std;
+using namespace sf;
+
+// Функция для интерполяции цвета между двумя цветами
+Color lerpColor(Color color1, Color color2, float t)
+{
+    int r = static_cast<int>(color1.r + (color2.r - color1.r) * t);
+    int g = static_cast<int>(color1.g + (color2.g - color1.g) * t);
+    int b = static_cast<int>(color1.b + (color2.b - color1.b) * t);
+    return Color(r, g, b);
+}
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+
+    RenderWindow window(VideoMode(800, 600), "Thermometer");
+    window.setFramerateLimit(60);
+
+
+    RectangleShape thermometer(Vector2f(50, 400));
+    thermometer.setPosition(375, 100);
+    thermometer.setFillColor(Color::White);
+    thermometer.setOutlineThickness(2);
+    thermometer.setOutlineColor(Color::Black);
+
+    // Создаем отметки на термометре
+    RectangleShape mark(Vector2f(5, 2));
+    mark.setFillColor(Color::Black);
+
+    // Создаем указатель для отображения текущего значения
+    Font font;
+    font.loadFromFile("arialmt.ttf");
+    Text temperatureText;
+    temperatureText.setFont(font);
+    temperatureText.setCharacterSize(20);
+    temperatureText.setFillColor(Color::Black);
+    temperatureText.setPosition(375, 520);
+
+    int temperature = 0; // Изначальное значение температуры
+    const int minTemperature = -273; // Минимальная температура
+    const int maxTemperature = 77; // Максимальная температура
+    const float temperatureFlowRate = 1.2f;
+
+    Clock clock;
+    float elapsedTime = 0;
+
+    while (window.isOpen())
+    {
+        // Обрабатываем события
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+                window.close();
+        }
+
+        // Обрабатываем нажатие клавиш
+        if (Keyboard::isKeyPressed(Keyboard::Up))
+            temperature ++;// Увеличиваем температуру при нажатии на "увеличить"
+        else if (Keyboard::isKeyPressed(Keyboard::Down))
+            temperature --;// Уменьшаем температуру при нажатии на "уменьшить"
+        else
+        {
+            if (temperature > 0)
+                temperature--;
+            else if (temperature < 0)
+                temperature++;
+        }
+
+        // Ограничиваем значения температуры
+        if (temperature < minTemperature)
+            temperature = minTemperature;
+        else if (temperature > maxTemperature)
+            temperature = maxTemperature;
+
+        elapsedTime += clock.restart().asSeconds();
+
+        if (elapsedTime >= 1 / temperatureFlowRate)
+        {
+            temperatureText.setString("Temperature: " + to_string(temperature) + " " + "Градусов");
+            elapsedTime = 0;
+        }
+
+        // Изменение цвета термометра в зависимости от температуры
+        Color color;
+        if (temperature >= 0) {
+            float temperaturePercent = static_cast<float>(temperature) / maxTemperature;
+            color = lerpColor(Color::White, Color::Red, temperaturePercent);
+        } else {
+            float temperaturePercent = static_cast<float>(temperature - minTemperature) / (0 - minTemperature);
+            color = lerpColor(Color::Blue, Color::White, temperaturePercent);
+        }
+        thermometer.setFillColor(color);
+
+        // Отрисовка
+        window.clear(Color::White);
+        window.draw(thermometer);
+        window.draw(temperatureText);
+
+        // Рисуем отметки на термометре
+            for (int i = minTemperature; i <= maxTemperature; i += 35) {
+            mark.setSize(Vector2f(20, 2));
+            mark.setPosition(325 + thermometer.getSize().x, 500 - ((i - minTemperature) / 35) * 40 - mark.getSize().y / 2);
+            window.draw(mark);
+
+            Text markText; 
+            markText.setFont(font);
+            markText.setCharacterSize(14);
+            markText.setFillColor(Color::Black);
+            markText.setString(to_string(i)); // Устанавливаем значение текста
+            markText.setPosition(mark.getPosition().x + mark.getSize().x + 5, mark.getPosition().y - 7);
+            window.draw(markText);
+        }
+        window.display();
+    }
