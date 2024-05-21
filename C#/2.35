@@ -1,0 +1,47 @@
+using System;
+
+double ResistanceAl = 2.8E-8, ResistanceWf = 5.5E-8, ResistanceCu = 1.78E-8, ResistanceStal = 1.3E-7;
+
+Console.WriteLine($"{ResistanceAl} {ResistanceWf} {ResistanceCu} {ResistanceStal}");
+
+Console.WriteLine("Введите длину сечения проволоки:  ");
+string dlinainput = Console.ReadLine(); 
+
+Console.WriteLine("Введите площадь поперечного сечения материала: ");
+string ploshadinput = Console.ReadLine();
+
+Console.WriteLine("Введите сопротивление материала: ");
+string resistanceinput = Console.ReadLine();
+
+if (
+    double.TryParse(dlinainput, out double length) 
+    && 
+    double.TryParse(ploshadinput, out double square) 
+    && 
+    double.TryParse(resistanceinput, out double resistance)
+    )
+{
+    double calculatedResistance = (resistance * square) / length;
+    double Epsilon = 1E-8;
+
+    if (Math.Abs(calculatedResistance - ResistanceAl) < Epsilon)
+    {
+        Console.WriteLine("Алюминий.");
+    }
+    else if (Math.Abs(calculatedResistance - ResistanceWf) < Epsilon)
+    {
+        Console.WriteLine("Вольфрам.");
+    }
+    else if (Math.Abs(calculatedResistance - ResistanceCu) < Epsilon)
+    {
+        Console.WriteLine("Медь.");
+    }
+    else if(Math.Abs(calculatedResistance - ResistanceStal) < Epsilon)
+    {
+        Console.WriteLine("Сталь.");
+    }
+    else
+    {
+        Console.WriteLine("Неизвестный материал.");
+    }
+}
