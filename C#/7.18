@@ -1,0 +1,117 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+class Spisok
+{
+    private class Person
+    {
+        public string Name { get; set; }
+        public string Lastname { get; set; }
+        public string Patronymic { get; set; }
+        public int BirthYear { get; set; }
+
+        public Person(string name, string lastname, string patronymic, int birthyear)
+        {
+            Name = name;
+            Lastname = lastname;
+            Patronymic = patronymic;
+            BirthYear = birthyear;
+        }
+
+        public override string ToString()
+        {
+            return $"{Lastname} {Name} {Patronymic} {BirthYear}";
+        }
+    }
+
+    private List<Person> people;
+
+    public Spisok()
+    {
+        people = new List<Person>();
+    }
+
+    public void AddPerson(string name, string lastname, string patronymic, int birthyear)
+    {
+        Person newPerson = new Person(name, lastname, patronymic, birthyear);
+        people.Add(newPerson);
+    }
+
+    public void PrintList()
+    {
+        foreach (var person in people)
+        {
+            Console.WriteLine(person);
+        }
+    }
+
+    public List<string> GetPeopleBornAfter(int year)
+    {
+        return people.Where(p => p.BirthYear > year)
+                     .Select(p => p.Lastname)
+                     .ToList();
+    }
+
+    public void LoadFromFile(string filePath)
+    {
+        var lines = File.ReadAllLines(filePath);
+        foreach (var line in lines)
+        {
+            var parts = line.Split(',');
+            if (parts.Length == 4 &&
+                int.TryParse(parts[3], out int birthYear))
+            {
+                AddPerson(parts[0].Trim(), parts[1].Trim(), parts[2].Trim(), birthYear);
+            }
+        }
+    }
+
+    public List<string> GetLastNames()
+    {
+        return people.Select(p => p.Lastname).ToList();
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Spisok list1 = new Spisok();
+        Spisok list2 = new Spisok();
+
+        list1.LoadFromFile("list1.txt"); 
+        list2.LoadFromFile("list2.txt"); 
+
+        Console.WriteLine("Список 1:");
+        list1.PrintList();
+
+        Console.WriteLine("\nСписок 2:");
+        list2.PrintList();
+
+        Console.WriteLine("\nВведите год:");
+        int year = int.Parse(Console.ReadLine());
+
+        Console.WriteLine("\nЛюди, родившиеся после " + year + " года из списка 1:");
+        var bornAfterList1 = list1.GetPeopleBornAfter(year);
+        foreach (var lastname in bornAfterList1)
+        {
+            Console.WriteLine(lastname);
+        }
+
+        Console.WriteLine("\nЛюди, родившиеся после " + year + " года из списка 2:");
+        var bornAfterList2 = list2.GetPeopleBornAfter(year);
+        foreach (var lastname in bornAfterList2)
+        {
+            Console.WriteLine(lastname);
+        }
+
+        var lastNamesList1 = list1.GetLastNames();
+        var lastNamesList2 = list2.GetLastNames();
+
+        var identicalLastNames = lastNamesList1.Intersect(lastNamesList2).Count();
+
+        Console.WriteLine($"\nЧисло одинаковых фамилий в списках: {identicalLastNames}");
+    }
+}
