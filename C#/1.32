@@ -1,0 +1,23 @@
+using System;
+
+
+double gamma = 6.67E-11;
+
+Console.WriteLine("Введите массу планеты в кг: ");
+string massInput = Console.ReadLine();
+
+Console.WriteLine("Введите радиус планеты в км: ");
+string radiusInput = Console.ReadLine();
+
+if (double.TryParse(massInput, out double mass) && double.TryParse(radiusInput, out double radius))
+{
+
+    double firstCosmicSpeed = Math.Sqrt((gamma * mass) / radius);
+
+    double secondCosmicSpeed = firstCosmicSpeed * Math.Sqrt(2);
+
+
+    Console.WriteLine("Первая космическая скорость: " + firstCosmicSpeed + " м/с");
+
+    Console.WriteLine("Вторая космическая скорость: " + secondCosmicSpeed + " м/с");
+}
