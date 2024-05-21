@@ -1,0 +1,63 @@
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {   
+        System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("ru-RU");
+
+        int size = 10;
+        List<int> randomList = new List<int>();
+        List<int> changedList = new List<int>();
+
+        GenerateRandomList(randomList, size);
+        foreach (int value in randomList)
+        {
+            changedList.Add(value);
+        }
+    
+        ChangeSignsOfEvenElements(changedList);
+       
+        Console.WriteLine("Базовый массив: ");
+        PrintList(randomList);
+        
+        Console.WriteLine("Массив с изменным знаком у четных элементов: ");
+        PrintList(changedList);
+    }
+
+    static void GenerateRandomList(List<int> list, int size)
+    {
+        Random rand = new Random();
+        HashSet<int> uniqueNumbers = new HashSet<int>();
+
+        while (uniqueNumbers.Count < size)
+        {
+            int newRandomValue = rand.Next(1, 11); // Генерация случайного числа от 1 до 10
+            if (uniqueNumbers.Add(newRandomValue))
+            {
+                list.Add(newRandomValue);
+            }
+        }
+    }
+
+    static void ChangeSignsOfEvenElements(List<int> list)
+    {
+        for (int i = 0; i < list.Count; ++i)
+        {
+            if (list[i] % 2 == 0)
+            {
+                list[i] *= -1;
+            }
+        }
+    }
+
+    static void PrintList(List<int> list)
+    {
+        foreach (int num in list)
+        {
+            Console.Write(num + " ");
+        }
+        Console.WriteLine();
+    }
+}
