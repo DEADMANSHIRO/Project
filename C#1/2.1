@@ -1,0 +1,31 @@
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine("Введите значение в метрах: ");
+        string MetrInput = Console.ReadLine();
+
+        Console.WriteLine("Введите значение в футах: ");
+        string FutInput = Console.ReadLine();
+
+        if (double.TryParse(MetrInput, out double metr) && double.TryParse(FutInput, out double fut))
+        {
+            double PerevodFut = 0.3 * fut;
+
+            if (metr - PerevodFut == 0)
+            {
+                Console.WriteLine("Расстояния равны.");
+            }
+            else if (metr - PerevodFut < 0)
+            {
+                Console.WriteLine("Расстояние в метрах меньше, чем в футах.");
+            }
+            else
+            {
+                Console.WriteLine("Расстояние в метрах больше, чем в футах.");
+            }
+        }
+    }
+}
