@@ -1,0 +1,77 @@
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
+using System;
+using System.Collections.Generic;
+
+class Apple
+{
+    public Apple(float startX, float startY)
+    {
+        shape = new CircleShape(10f);
+        shape.FillColor = SFML.Graphics.Color.Red;
+        shape.Position = new Vector2f(startX, startY);
+    }
+
+    public void Update(float deltaTime)
+    {
+        shape.Position += new Vector2f(0f, speed * deltaTime);
+
+        if (speed < maxSpeed)
+            speed += acceleration * deltaTime;
+    }
+
+    public CircleShape Shape => shape;
+
+    private CircleShape shape;
+    private float speed = 200f; // Начальная скорость падения
+    private float maxSpeed = 500f; // Максимальная скорость падения
+    private float acceleration = 0.05f; // Ускорение
+}
+
+class Program
+{
+    static void Main()
+    {
+        Random rand = new Random();
+        RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Falling Apples");
+        window.Closed += (sender, e) => window.Close();
+
+        List<Apple> apples = new List<Apple>();
+
+        Clock clock = new Clock();
+        float spawnTimer = 0f;
+        float spawnInterval = 1f;
+
+        while (window.IsOpen)
+        {
+            window.DispatchEvents();
+
+            float deltaTime = clock.Restart().AsSeconds();
+            spawnTimer += deltaTime;
+
+            if (spawnTimer >= spawnInterval)
+            {
+                spawnTimer -= spawnInterval;
+                float startX = (float)rand.Next(10, (int)window.Size.X - 10);
+                apples.Add(new Apple(startX, -20f));
+            }
+
+            window.Clear();
+
+            for (int i = 0; i < apples.Count; i++)
+            {
+                apples[i].Update(deltaTime);
+                window.Draw(apples[i].Shape);
+
+                if (apples[i].Shape.Position.Y > window.Size.Y)
+                {
+                    apples.RemoveAt(i);
+                    i--; // Уменьшить индекс, чтобы не пропустить следующий элемент
+                }
+            }
+
+            window.Display();
+        }
+    }
+}
