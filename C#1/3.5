@@ -1,0 +1,56 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        
+        Console.Write("Введите значение N (максимальное количество дюймов): ");
+        double N = Convert.ToDouble(Console.ReadLine());
+
+        Console.Write("Введите шаг d (шаг в дюймах): ");
+        double d = Convert.ToDouble(Console.ReadLine());
+
+        
+        const double inchToCm = 2.54;
+
+        
+        int rowCount = 0;
+
+        
+        void PrintLine(int width1, int width2)
+        {
+            Console.WriteLine("+" + new string('-', width1) + "+" + new string('-', width2) + "+");
+        }
+
+        
+        void PrintRow(string col1, string col2, int width1, int width2)
+        {
+            Console.WriteLine($"| {col1.PadRight(width1 - 1)}| {col2.PadRight(width2 - 1)}|");
+        }
+
+        
+        int col1Width = 10;
+        int col2Width = 15;
+
+        
+        PrintLine(col1Width, col2Width);
+        PrintRow("Дюймы", "Сантиметры", col1Width, col2Width);
+        PrintLine(col1Width, col2Width);
+
+        
+        for (double inches = 0; inches <= N; inches += d)
+        {
+            double centimeters = Math.Round(inches * inchToCm, 2);
+            string inchesFormatted = inches.ToString("0.##");
+            PrintRow(inchesFormatted, $"{centimeters:F2}", col1Width, col2Width);
+            rowCount++;
+        }
+
+       
+        PrintLine(col1Width, col2Width);
+
+        
+        Console.WriteLine($"\nКоличество строк в таблице: {rowCount}");
+    }
+}
