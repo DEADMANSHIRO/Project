@@ -1,0 +1,86 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+using namespace sf;
+
+class Apple {
+public:
+    Apple(float startX, float startY)
+    {
+        shape.setPosition(startX, startY);
+        shape.setRadius(10.f);
+        shape.setFillColor(Color::Red);
+    }
+
+    void update()
+    {
+        shape.move(0.f, speed);
+
+        if (speed < maxSpeed)
+            speed += acceleration;
+    }
+
+    CircleShape getShape()
+    {
+        return shape;
+    }
+
+private:
+    CircleShape shape;
+    float speed = 0.0002f; // Начальная скорость падения
+    float maxSpeed =0.001f; // Максимальная скорость падения
+    float acceleration = 0.05f; // Ускорение
+};
+
+int main()
+{
+    srand(static_cast<unsigned>(time(nullptr)));
+
+    RenderWindow window(VideoMode(800, 600), "Falling Apples");
+
+    vector<Apple> apples;
+
+    Clock clock;
+    float deltaTime = 0.f;
+    float spawnTimer = 0.f;
+    float spawnInterval = 1.f;
+
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+            {
+                if (event.type == Event::Closed)
+                window.close();
+            }
+
+        deltaTime = clock.restart().asSeconds();
+        spawnTimer += deltaTime;
+
+        if (spawnTimer >= spawnInterval)
+            {
+                spawnTimer -= spawnInterval;
+                float startX = static_cast<float>(rand() % (window.getSize().x - 20) + 10);
+                apples.emplace_back(startX, -20.f);
+            }
+
+        window.clear();
+
+        for (size_t i = 0; i < apples.size(); ++i)
+            {
+                apples[i].update();
+                window.draw(apples[i].getShape());
+
+                if (apples[i].getShape().getPosition().y > window.getSize().y)
+                apples.erase(apples.begin() + i);
+            }
+
+        window.display();
+    }
+
+    return 0;
+}
