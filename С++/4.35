@@ -1,0 +1,56 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+
+using namespace sf;
+using namespace std;
+
+int main()
+{
+    RenderWindow window(VideoMode(800, 600), "House with Light");
+
+    RectangleShape house(Vector2f(200, 200));
+    house.setPosition(300, 200);
+    house.setFillColor(Color::White);
+
+    ConvexShape roof;
+    roof.setPointCount(3);
+    roof.setPoint(0, Vector2f(300, 200));
+    roof.setPoint(1, Vector2f(500, 200));
+    roof.setPoint(2, Vector2f(400, 100));
+    roof.setFillColor(Color(139, 69, 19)); // коричневый цвет
+
+    RectangleShape light(Vector2f(50, 50));
+    light.setPosition(375, 300);
+    light.setFillColor(Color::Yellow);
+    bool isLightOn = false;
+
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+                window.close();
+            else if (event.type == Event::KeyPressed)
+            {
+                // Переключаем свет при нажатии на клавишу Space
+                if (event.key.code == Keyboard::Space)
+                {
+                    isLightOn = !isLightOn;
+                    if (isLightOn)
+                        light.setFillColor(Color::Yellow);
+                    else
+                        light.setFillColor(Color::Transparent);
+                }
+            }
+        }
+
+        window.clear(Color::Black);
+        window.draw(house);
+        window.draw(roof);
+        window.draw(light);
+        window.display();
+    }
+
+    return 0;
+}
