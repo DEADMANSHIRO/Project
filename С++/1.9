@@ -1,0 +1,22 @@
+#include <iostream>
+#include <sstream>
+
+using namespace std;
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+    double x1,x2;
+    double y1,y2;
+    double z1,z2;
+    double dotproductofvectors;
+    string input;
+
+    cout << "Введите координаты двух векторов: ";
+    getline(cin, input);
+    stringstream ss(input);
+    ss >> x1 >> x2 >> y1 >> y2 >> z1 >> z2;
+    dotproductofvectors = x1*x2 + y1*y2 + z1*z2;
+    cout << "Результат: " << dotproductofvectors;
+    return 0;
+}
