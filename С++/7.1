@@ -1,0 +1,75 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+class Point
+{
+    private:
+        double x;
+        double y;
+    public:
+        Point(double xCoord, double yCoord) : x(xCoord), y(yCoord)
+        {}
+
+        double distanceToOrigin()
+        {
+            return sqrt(x * x + y * y);
+        }
+
+        double getX()
+        {
+            return x;
+        }
+
+        double getY()
+        {
+            return y;
+        }
+
+        static double distanceBetweenPoints(Point p1, Point p2)
+        {
+            double dx = p2.getX() - p1.getX();
+            double dy = p2.getY() - p1.getY();
+            return sqrt(dx * dx + dy * dy);
+        }
+};
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+
+    double x1, y1, x2, y2;
+
+    cout << "Введите координаты точки 1 (x, y): ";
+    cin >> x1 >> y1;
+
+    cout << "Введите координаты точки 2 (x, y): ";
+    cin >> x2 >> y2;
+
+    Point point1(x1, y1);
+    Point point2(x2, y2);
+
+
+    double distance1 = point1.distanceToOrigin();
+    double distance2 = point2.distanceToOrigin();
+
+
+    if (distance1 < distance2)
+    {
+        cout << "Точка 1 ближе к началу координат.\n";
+    }
+    else if (distance2 < distance1)
+    {
+        cout << "Точка 2 ближе к началу координат.\n";
+    }
+    else
+    {
+        cout << "Точки находятся на одинаковом расстоянии от начала координат.\n";
+    }
+
+    double distanceBetween = Point::distanceBetweenPoints(point1, point2);
+    cout << "Расстояние между точками: " << distanceBetween << endl;
+
+    return 0;
+}
