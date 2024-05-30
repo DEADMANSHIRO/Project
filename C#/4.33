@@ -1,0 +1,110 @@
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
+using System;
+
+namespace Thermometer
+{
+    class Program
+    {
+        static Color LerpColor(Color color1, Color color2, float t)
+        {
+            byte r = (byte)(color1.R + (color2.R - color1.R) * t);
+            byte g = (byte)(color1.G + (color2.G - color1.G) * t);
+            byte b = (byte)(color1.B + (color2.B - color1.B) * t);
+            return new Color(r, g, b);
+        }
+
+        static void Main(string[] args)
+        {
+            RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Термометр");
+            window.SetFramerateLimit(60);
+
+            window.Closed += (sender, e) => window.Close();
+
+            RectangleShape thermometer = new RectangleShape(new Vector2f(50, 400));
+            thermometer.Position = new Vector2f(375, 100);
+            thermometer.FillColor = Color.White;
+            thermometer.OutlineThickness = 2;
+            thermometer.OutlineColor = Color.Black;
+
+            RectangleShape mark = new RectangleShape(new Vector2f(5, 2));
+            mark.FillColor = Color.Black;
+
+            Font font = new Font("arialmt.ttf");
+            Text temperatureText = new Text("", font);
+            temperatureText.CharacterSize = 20;
+            temperatureText.FillColor = Color.Black;
+            temperatureText.Position = new Vector2f(375, 520);
+
+            int temperature = 0;
+            const int minTemperature = -273;
+            const int maxTemperature = 77;
+            const float temperatureFlowRate = 1.2f;
+
+            Clock clock = new Clock();
+            float elapsedTime = 0;
+
+            while (window.IsOpen)
+            {
+                window.DispatchEvents();
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.Up))
+                    temperature++;
+                else if (Keyboard.IsKeyPressed(Keyboard.Key.Down))
+                    temperature--;
+                else
+                {
+                    if (temperature > 0)
+                        temperature--;
+                    else if (temperature < 0)
+                        temperature++;
+                }
+
+                if (temperature < minTemperature)
+                    temperature = minTemperature;
+                else if (temperature > maxTemperature)
+                    temperature = maxTemperature;
+
+                elapsedTime += clock.Restart().AsSeconds();
+
+                if (elapsedTime >= 1 / temperatureFlowRate)
+                {
+                    temperatureText.DisplayedString = "Температура: " + temperature + " " + "Градусов";
+                    elapsedTime = 0;
+                }
+
+                Color color;
+                if (temperature >= 0)
+                {
+                    float temperaturePercent = (float)temperature / maxTemperature;
+                    color = LerpColor(Color.White, Color.Red, temperaturePercent);
+                }
+                else
+                {
+                    float temperaturePercent = (float)(temperature - minTemperature) / (0 - minTemperature);
+                    color = LerpColor(Color.Blue, Color.White, temperaturePercent);
+                }
+                thermometer.FillColor = color;
+
+                window.Clear(Color.White);
+                window.Draw(thermometer);
+                window.Draw(temperatureText);
+
+                for (int i = minTemperature; i <= maxTemperature; i += 35)
+                {
+                    mark.Size = new Vector2f(20, 2);
+                    mark.Position = new Vector2f(325 + thermometer.Size.X, 500 - ((i - minTemperature) / 35) * 40 - mark.Size.Y / 2);
+                    window.Draw(mark);
+
+                    Text markText = new Text(i.ToString(), font);
+                    markText.CharacterSize = 14;
+                    markText.FillColor = Color.Black;
+                    markText.Position = new Vector2f(mark.Position.X + mark.Size.X + 5, mark.Position.Y - 7);
+                    window.Draw(markText);
+                }
+                window.Display();
+            }
+        }
+    }
+}
