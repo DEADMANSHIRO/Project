@@ -1,0 +1,29 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        double[] vector1 = new double[3];
+        double[] vector2 = new double[3];
+        string[] coordinates = { "x", "y", "z" };
+
+        for (int i = 0; i < 3; i++)
+        {
+            Console.WriteLine($"Введите координату {coordinates[i]}1: ");
+            string input1 = Console.ReadLine();
+
+            Console.WriteLine($"Введите координату {coordinates[i]}2: ");
+            string input2 = Console.ReadLine();
+
+            if (!double.TryParse(input1, out vector1[i]) || !double.TryParse(input2, out vector2[i]))
+            {
+                Console.WriteLine("Некорректный ввод, попробуйте снова.");
+                return;
+            }
+        }
+
+        double result = vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2];
+        Console.WriteLine($"Результат скалярного произведения векторов: {result}");
+    }
+}
