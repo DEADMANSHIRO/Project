@@ -1,0 +1,47 @@
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        RenderWindow window = new RenderWindow(new VideoMode(800, 600), "House with Light");
+
+        RectangleShape house = new RectangleShape(new Vector2f(200, 200));
+        house.Position = new Vector2f(300, 200);
+        house.FillColor = SFML.Graphics.Color.White;
+
+        ConvexShape roof = new ConvexShape();
+        roof.SetPointCount(3);
+        roof.SetPoint(0, new Vector2f(300, 200));
+        roof.SetPoint(1, new Vector2f(500, 200));
+        roof.SetPoint(2, new Vector2f(400, 100));
+        roof.FillColor = new SFML.Graphics.Color(139, 69, 19); // коричневый цвет
+
+        RectangleShape light = new RectangleShape(new Vector2f(50, 50));
+        light.Position = new Vector2f(375, 300);
+        light.FillColor = SFML.Graphics.Color.Yellow;
+        bool isLightOn = false;
+
+        window.Closed += (sender, e) => window.Close();
+
+        while (window.IsOpen)
+        {
+            window.DispatchEvents();
+
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Space))
+            {             
+                isLightOn = !isLightOn;
+                light.FillColor = isLightOn ? SFML.Graphics.Color.Yellow : SFML.Graphics.Color.Transparent;
+            }
+
+            window.Clear(SFML.Graphics.Color.Black);
+            window.Draw(house);
+            window.Draw(roof);
+            window.Draw(light);
+            window.Display();
+        }
+    }
+}
