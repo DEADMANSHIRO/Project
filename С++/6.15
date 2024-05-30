@@ -1,0 +1,41 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+double calculateDistance(double x1, double y1, double x2, double y2)
+{
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+}
+
+bool isRightTriangle(double a, double b, double c)
+{
+    return (fabs(a * a + b * b - c * c) < 1e-9 ||
+            fabs(a * a + c * c - b * b) < 1e-9 ||
+            fabs(b * b + c * c - a * a) < 1e-9);
+}
+
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+    double x, y, x1, y1, x2, y2;
+
+    cout << "Введите координаты вершины A (x, y): ";
+    cin >> x >> y;
+    cout << "Введите координаты вершины B (x1, y1): ";
+    cin >> x1 >> y1;
+    cout << "Введите координаты вершины C (x2, y2): ";
+    cin >> x2 >> y2;
+
+    double a = calculateDistance(x, y, x1, y1);
+    double b = calculateDistance(x, y, x2, y2);
+    double c = calculateDistance(x1, y1, x2, y2);
+
+    if (isRightTriangle(a, b, c)) {
+        cout << "Треугольник с вершинами A(" << x << ", " << y << "), B(" << x1 << ", " << y1 << "), C(" << x2 << ", " << y2 << ") является прямоугольным.\n";
+    } else {
+        cout << "Треугольник с вершинами A(" << x << ", " << y << "), B(" << x1 << ", " << y1 << "), C(" << x2 << ", " << y2 << ") не является прямоугольным.\n";
+    }
+    return 0;
+}
