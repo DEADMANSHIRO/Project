@@ -1,0 +1,55 @@
+using System;
+
+class Program
+{
+    static double CalculateDistance(double x1, double y1, double x2, double y2)
+    {
+        return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
+    }
+
+    static bool IsRightTriangle(double a, double b, double c)
+    {
+        return Math.Abs(a * a + b * b - c * c) < 1e-9 ||
+               Math.Abs(a * a + c * c - b * b) < 1e-9 ||
+               Math.Abs(b * b + c * c - a * a) < 1e-9;
+    }
+
+    static void Main()
+    {
+        double x, y, x1, y1, x2, y2;
+
+        Console.WriteLine("Введите координаты вершины A (x, y): ");
+        if (!double.TryParse(Console.ReadLine(), out x) || !double.TryParse(Console.ReadLine(), out y))
+        {
+            Console.WriteLine("Ошибка ввода координат вершины A.");
+            return;
+        }
+
+        Console.WriteLine("Введите координаты вершины B (x1, y1): ");
+        if (!double.TryParse(Console.ReadLine(), out x1) || !double.TryParse(Console.ReadLine(), out y1))
+        {
+            Console.WriteLine("Ошибка ввода координат вершины B.");
+            return;
+        }
+
+        Console.WriteLine("Введите координаты вершины C (x2, y2): ");
+        if (!double.TryParse(Console.ReadLine(), out x2) || !double.TryParse(Console.ReadLine(), out y2))
+        {
+            Console.WriteLine("Ошибка ввода координат вершины C.");
+            return;
+        }
+
+        double a = CalculateDistance(x, y, x1, y1);
+        double b = CalculateDistance(x, y, x2, y2);
+        double c = CalculateDistance(x1, y1, x2, y2);
+
+        if (IsRightTriangle(a, b, c))
+        {
+            Console.WriteLine($"Треугольник с вершинами A({x}, {y}), B({x1}, {y1}), C({x2}, {y2}) является прямоугольным.");
+        }
+        else
+        {
+            Console.WriteLine($"Треугольник с вершинами A({x}, {y}), B({x1}, {y1}), C({x2}, {y2}) не является прямоугольным.");
+        }
+    }
+}
