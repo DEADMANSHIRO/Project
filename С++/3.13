@@ -1,0 +1,44 @@
+#include <iostream>
+#include <iomanip>
+
+using namespace std;
+
+
+int main()
+{
+    setlocale(LC_ALL,"Rus");
+    const double h = 6.626e-34; // постоянная Планка в Дж·с
+    const double epsilon_0 = 8.854e-12; // электрическая постоянная в Ф/м
+    const double m = 9.109e-31; // масса электрона в кг
+    const double e = 1.602e-19; // заряд электрона в Кл
+
+    double rad_m[10];
+    double rad_angstrom[10];
+    double total_radius_m = 0.0;
+    double calculateBohrRadius;
+
+    cout << "Радиусы первых десяти боровских орбит:\n";
+    cout << setw(5) << "n" << setw(20) << "Радиус (метры)" << setw(20) << "Радиус (ангстремы)" << endl;
+
+
+
+    for (int n = 1; n <= 10; ++n)
+    {
+        calculateBohrRadius = (n * n * h * h * epsilon_0) / (3.14159265358979323846 * m * e * e);
+        rad_m[n-1] = calculateBohrRadius;
+        rad_angstrom[n-1] = rad_m[n-1] * 1e10; // Перевод в ангстремы
+        total_radius_m += rad_m[n-1];
+
+        cout << setw(5) << n
+                        << setw(20) << scientific << rad_m[n-1]
+                        << setw(20) << fixed << rad_angstrom[n-1]
+                        << endl;
+    }
+
+    double average_radius_m = total_radius_m / 10.0; // Средний радиус в метрах
+
+    cout << "\nСредний радиус орбиты электрона (в метрах): " << scientific << average_radius_m << endl;
+    cout << "Средний радиус орбиты электрона (в ангстремах): " << fixed << average_radius_m * 1e10 << endl;
+
+    return 0;
+}
