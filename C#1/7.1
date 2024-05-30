@@ -1,0 +1,80 @@
+using System;
+
+class Point
+{
+    private double x;
+    private double y;
+
+    public Point(double xCoord, double yCoord)
+    {
+        x = xCoord;
+        y = yCoord;
+    }
+
+    public double DistanceToOrigin()
+    {
+        return Math.Sqrt(x * x + y * y);
+    }
+
+    public double GetX()
+    {
+        return x;
+    }
+
+    public double GetY()
+    {
+        return y;
+    }
+
+    public static double DistanceBetweenPoints(Point p1, Point p2)
+    {
+        double dx = p2.GetX() - p1.GetX();
+        double dy = p2.GetY() - p1.GetY();
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        double x1, y1, x2, y2;
+
+
+        Console.WriteLine("Введите координаты точки 1 (x, y): ");
+        if (!double.TryParse(Console.ReadLine(), out x1) || !double.TryParse(Console.ReadLine(), out y1))
+        {
+            Console.WriteLine("Ошибка ввода координат точки 1.");
+            return;
+        }
+
+        Console.WriteLine("Введите координаты точки 2 (x, y): ");
+        if (!double.TryParse(Console.ReadLine(), out x2) || !double.TryParse(Console.ReadLine(), out y2))
+        {
+            Console.WriteLine("Ошибка ввода координат точки 2.");
+            return;
+        }
+
+        Point point1 = new Point(x1, y1);
+        Point point2 = new Point(x2, y2);
+
+        double distance1 = point1.DistanceToOrigin();
+        double distance2 = point2.DistanceToOrigin();
+
+        if (distance1 < distance2)
+        {
+            Console.WriteLine("Точка 1 ближе к началу координат.");
+        }
+        else if (distance2 < distance1)
+        {
+            Console.WriteLine("Точка 2 ближе к началу координат.");
+        }
+        else
+        {
+            Console.WriteLine("Точки находятся на одинаковом расстоянии от начала координат.");
+        }
+
+        double distanceBetween = Point.DistanceBetweenPoints(point1, point2);
+        Console.WriteLine($"Расстояние между точками: {distanceBetween}");
+    }
+}
