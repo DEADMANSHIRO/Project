@@ -15,7 +15,7 @@ namespace Thermometer
             return new Color(r, g, b);
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
             RenderWindow window = new RenderWindow(new VideoMode(800, 600), "Термометр");
             window.SetFramerateLimit(60);
