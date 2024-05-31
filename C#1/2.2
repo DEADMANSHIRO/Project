@@ -1,0 +1,61 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        double radius;
+        double storona;
+
+        while (true)
+        {
+            Console.WriteLine("Введите значение радиуса круга: ");
+            string RadiusInput = Console.ReadLine();
+
+            if (double.TryParse(RadiusInput, out radius))
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Ehe te nandayo!!!. Пожалуйста, введите корректное значение радиуса.");
+            }
+        }
+
+        while (true)
+        {
+            Console.WriteLine("Введите значение стороны квадрата: ");
+            string StoronaInput = Console.ReadLine();
+
+            if (double.TryParse(StoronaInput, out storona))
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Ehe te nandayo!!!. Пожалуйста, введите корректное значение стороны.");
+            }
+        }
+
+        double Square1 = Math.PI * Math.Pow(radius, 2);
+        double Square2 = Math.Pow(storona, 2);
+        double Different = Square1 - Square2;
+
+        Console.WriteLine($"Площадь круга = {Square1}");
+        Console.WriteLine($"Площадь квадрата = {Square2}");
+        Console.WriteLine($"Разница между площадью круга и площадью квадрата = {Different}");
+
+        if (Different == 0)
+        {
+            Console.WriteLine("Площади равны.");
+        }
+        else if (Different < 0)
+        {
+            Console.WriteLine("Площадь квадрата больше.");
+        }
+        else
+        {
+            Console.WriteLine("Площадь круга больше.");
+        }
+    }
+}
