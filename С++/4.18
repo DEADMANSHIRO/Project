@@ -1,0 +1,94 @@
+#define _USE_MATH_DEFINES
+#include <SFML/Graphics.hpp>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+using namespace sf;
+
+// Структура для представления цветка
+struct Flower {
+    CircleShape center;              // Центр цветка
+    vector<CircleShape> petals;      // Лепестки цветка
+    RectangleShape stem;             // Стебель цветка
+    float petalRadius;               // Радиус лепестков
+    int numPetals;                   // Количество лепестков
+
+    // Конструктор цветка
+    Flower(float x, float y, float stemHeight, float petalRadius, int numPetals)
+        : petalRadius(petalRadius), numPetals(numPetals) {
+        // Инициализация центра цветка
+        center.setRadius(petalRadius);
+        center.setFillColor(Color::Yellow);
+        center.setOrigin(petalRadius, petalRadius);
+        center.setPosition(x, y - stemHeight - petalRadius);
+
+        // Инициализация стебля цветка
+        stem.setSize(Vector2f(10, stemHeight));
+        stem.setFillColor(Color::Green);
+        stem.setPosition(x - 5, y - stemHeight);
+
+        // Инициализация лепестков цветка
+        for (int i = 0; i < numPetals; ++i) {
+            CircleShape petal(petalRadius);
+            petal.setFillColor(Color::Red);
+            petal.setOrigin(petalRadius, petalRadius);
+            petals.push_back(petal);
+        }
+    }
+
+    // Функция для рисования цветка
+    void draw(RenderWindow &window, float growthFactor) {
+        // Рисование стебля
+        window.draw(stem);
+
+        // Рисование лепестков
+        for (int i = 0; i < numPetals; ++i) {
+            float angle = 2 * M_PI * i / numPetals;
+            float x = center.getPosition().x + growthFactor * petalRadius * cos(angle);
+            float y = center.getPosition().y + growthFactor * petalRadius * sin(angle);
+            petals[i].setPosition(x, y);
+            window.draw(petals[i]);
+        }
+
+        // Рисование центра
+        window.draw(center);
+    }
+};
+
+int main() {
+    RenderWindow window(VideoMode(800, 600), "Growing Flower");
+    window.setFramerateLimit(60);
+
+    float x = 400;
+    float y = 500;
+    float stemHeight = 200;
+    float petalRadius = 20;
+    int numPetals = 8;
+    Flower flower(x, y, stemHeight, petalRadius, numPetals);
+
+    float growthFactor = 0.0f;  // Фактор роста
+    bool growing = true;        // Флаг роста цветка
+
+    while (window.isOpen()) {
+        Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed)
+                window.close();
+        }
+
+        // Анимация роста цветка
+        if (growing) {
+            growthFactor += 0.01f;
+            if (growthFactor >= 1.0f)
+                growing = false;
+        }
+
+        // Очистка окна и рисование цветка
+        window.clear(Color::White);
+        flower.draw(window, growthFactor);
+        window.display();
+    }
+
+    return 0;
+}
