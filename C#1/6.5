@@ -1,0 +1,76 @@
+using System;
+
+class Program
+{
+    struct Point
+    {
+        public double X;
+        public double Y;
+    }
+
+    static double Distance(Point p1, Point p2)
+    {
+        return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
+    }
+
+    static double RectangleArea(Point p1, Point p2, Point p3, Point p4)
+    {
+        double side1 = Distance(p1, p2);
+        double side2 = Distance(p2, p3);
+        return side1 * side2;
+    }
+
+    static bool TryParsePoint(out Point point)
+    {
+        point = new Point();
+        string input = Console.ReadLine();
+        string[] parts = input.Split();
+
+        if (parts.Length != 2 ||
+            !double.TryParse(parts[0], out point.X) ||
+            !double.TryParse(parts[1], out point.Y))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    static void Main()
+    {
+        Point p1, p2, p3, p4;
+
+        Console.WriteLine("Введите координаты четырех вершин прямоугольника:");
+
+        Console.Write("Первая вершина (x1 y1): ");
+        while (!TryParsePoint(out p1))
+        {
+            Console.WriteLine("Неверный ввод. Пожалуйста, введите координаты снова: ");
+            Console.Write("Первая вершина (x1 y1): ");
+        }
+
+        Console.Write("Вторая вершина (x2 y2): ");
+        while (!TryParsePoint(out p2))
+        {
+            Console.WriteLine("Неверный ввод. Пожалуйста, введите координаты снова: ");
+            Console.Write("Вторая вершина (x2 y2): ");
+        }
+
+        Console.Write("Третья вершина (x3 y3): ");
+        while (!TryParsePoint(out p3))
+        {
+            Console.WriteLine("Неверный ввод. Пожалуйста, введите координаты снова: ");
+            Console.Write("Третья вершина (x3 y3): ");
+        }
+
+        Console.Write("Четвертая вершина (x4 y4): ");
+        while (!TryParsePoint(out p4))
+        {
+            Console.WriteLine("Неверный ввод. Пожалуйста, введите координаты снова: ");
+            Console.Write("Четвертая вершина (x4 y4): ");
+        }
+
+        double area = RectangleArea(p1, p2, p3, p4);
+        Console.WriteLine("Площадь прямоугольника: " + area);
+    }
+}
