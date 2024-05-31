@@ -1,0 +1,105 @@
+using System;
+using System.Drawing;
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
+using Color = SFML.Graphics.Color;
+
+namespace Flower
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            const float PI = (float)Math.PI;
+
+
+            var window = new RenderWindow(new VideoMode(800, 600), "Growing Flower");
+            window.SetFramerateLimit(60);
+
+            window.Closed += (sender, e) => window.Close();
+
+            float x = 400;
+            float y = 500;
+            float stemHeight = 200;
+            float petalRadius = 20;
+            int numPetals = 8;
+            var flower = new Flower(x, y, stemHeight, petalRadius, numPetals);
+
+            float growthFactor = 0.0f;  // Фактор роста
+            bool growing = true;        // Флаг роста цветка
+
+            while (window.IsOpen)
+            {
+                window.DispatchEvents();
+
+                // Анимация роста цветка
+                if (growing)
+                {
+                    growthFactor += 0.01f;
+                    if (growthFactor >= 1.0f)
+                        growing = false;
+                }
+
+                // Очистка окна и рисование цветка
+                window.Clear(Color.White);
+                flower.Draw(window, growthFactor);
+                window.Display();
+            }
+        }
+    }
+
+    class Flower
+    {
+        CircleShape center;           // Центр цветка
+        RectangleShape stem;          // Стебель цветка
+        CircleShape[] petals;         // Лепестки цветка
+        float petalRadius;            // Радиус лепестков
+        int numPetals;                // Количество лепестков
+
+        public Flower(float x, float y, float stemHeight, float petalRadius, int numPetals)
+        {
+            this.petalRadius = petalRadius;
+            this.numPetals = numPetals;
+
+            // Инициализация центра цветка
+            center = new CircleShape(petalRadius);
+            center.FillColor = Color.Yellow;
+            center.Origin = new Vector2f(petalRadius, petalRadius);
+            center.Position = new Vector2f(x, y - stemHeight - petalRadius);
+
+            // Инициализация стебля цветка
+            stem = new RectangleShape(new Vector2f(10, stemHeight));
+            stem.FillColor = Color.Green;
+            stem.Position = new Vector2f(x - 5, y - stemHeight);
+
+            // Инициализация лепестков цветка
+            petals = new CircleShape[numPetals];
+            for (int i = 0; i < numPetals; ++i)
+            {
+                petals[i] = new CircleShape(petalRadius);
+                petals[i].FillColor = Color.Red;
+                petals[i].Origin = new Vector2f(petalRadius, petalRadius);
+            }
+        }
+
+        public void Draw(RenderWindow window, float growthFactor)
+        {
+            // Рисование стебля
+            window.Draw(stem);
+
+            // Рисование лепестков
+            for (int i = 0; i < numPetals; ++i)
+            {
+                float angle = 2 * (float)Math.PI * i / numPetals;
+                float x = center.Position.X + growthFactor * petalRadius * (float)Math.Cos(angle);
+                float y = center.Position.Y + growthFactor * petalRadius * (float)Math.Sin(angle);
+                petals[i].Position = new Vector2f(x, y);
+                window.Draw(petals[i]);
+            }
+
+            // Рисование центра
+            window.Draw(center);
+        }
+    }
+}
