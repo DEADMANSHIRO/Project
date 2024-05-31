@@ -1,0 +1,49 @@
+#define _USE_MATH_DEFINES
+#include <iostream>
+#include <math.h>
+
+
+using namespace std;
+
+int main()
+{
+setlocale(LC_ALL,"Rus");
+
+float Radius;
+float Storona;
+float Square1,Square2;
+float Difference;
+
+cout << "Введите значение радиуса круга: " << endl;
+cin >> Radius;
+
+cout << "Введите значение стороны куба: " << endl;
+cin >> Storona;
+
+cout << endl;
+
+Square1=M_PI*pow(Radius,2);
+Square2=pow(Storona,2);
+
+Difference= Square1 - Square2;
+
+if (Difference == 0)
+{
+    cout << Difference << endl;
+    cout << endl;
+    cout << "Площади фигур равны.";
+}
+else if (Difference < 0)
+{
+    cout << Difference << endl;
+    cout << endl;
+    cout << "Площадь куба больше, чем площадь круга.";
+}
+else
+{
+    cout << Difference << endl;
+    cout << endl;
+    cout << "Площадь круга больше, чем площадь куба.";
+}
+return 0;
+}
