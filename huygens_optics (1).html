@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Принцип Гюйгенса — интерактивная волновая модель</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#647188;--line:#dce3ed;--panel:#fff;--page:#f2f5fa;--blue:#2878c8;--orange:#d97726;--purple:#7756c9;--green:#24836b}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,input{font:inherit}.shell{max-width:1500px;margin:0 auto;padding:22px 22px 32px}header{margin-bottom:18px}.eyebrow{margin:0 0 6px;color:#536681;text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:800}h1{margin:0;font-size:clamp(25px,3vw,37px);line-height:1.13;letter-spacing:-.035em}.intro{max-width:1000px;color:var(--muted);font-size:15px;margin:10px 0 0}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 5px 18px rgba(28,44,75,.045)}.visual{padding:12px;min-width:0}.visual-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:2px 3px 10px}.visual-head strong{font-size:14px}.status{font-size:12px;color:var(--muted);text-align:right}.canvas-wrap{width:100%;position:relative}.canvas-wrap canvas{display:block;width:100%;height:auto;border-radius:11px;background:#edf5ff}.legend{display:flex;gap:9px 16px;flex-wrap:wrap;padding:12px 4px 1px;color:#536078;font-size:11px}.legend-item{display:inline-flex;align-items:center;gap:6px}.swatch{width:22px;height:0;border-top:3px solid;border-radius:2px}.swatch.dashed{border-top-style:dashed}.caption{font-size:11px;color:var(--muted);margin:10px 3px 1px}
+.side{display:grid;gap:13px}.controls,.results{padding:17px}.controls h2,.results h2,.explain h2{margin:0 0 13px;font-size:16px;letter-spacing:-.015em}.field{margin-bottom:14px}.field-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}.field label{font-size:12px;font-weight:700}.field output{font-weight:800;font-size:12px;color:#304e7e;font-variant-numeric:tabular-nums;white-space:nowrap}input[type=range]{display:block;width:100%;accent-color:#346eb2;cursor:pointer}.limits{display:flex;justify-content:space-between;color:#8390a4;font-size:10px;margin-top:1px}.note{margin:-5px 0 12px;color:var(--muted);font-size:11px}.rule{height:1px;background:#e9edf4;margin:14px 0}.checks{display:grid;gap:9px;margin:0 0 15px}.check{display:flex;align-items:center;gap:8px;font-size:12px;color:#46536a;cursor:pointer}.check input{width:14px;height:14px;accent-color:#346eb2}.buttons{display:grid;grid-template-columns:1fr auto;gap:8px}.primary,.secondary{padding:9px 11px;border-radius:9px;font-size:12px;font-weight:750;cursor:pointer}.primary{background:#2e69ad;color:white;border:1px solid #265d9e}.primary:hover{background:#255b98}.secondary{background:#fff;color:#40516c;border:1px solid #d5deea}.secondary:hover{background:#f5f8fc}.result-line{padding:9px 0;border-bottom:1px solid #edf1f6}.result-line:last-of-type{border-bottom:0}.result-label{font-size:11px;color:var(--muted);margin-bottom:2px}.result-value{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}.formula{margin-top:11px;padding:11px;background:#f6f8fc;border:1px solid #e9eef6;border-radius:9px;color:#34435c;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.notice{display:none;margin-top:10px;padding:10px 11px;border-radius:9px;font-size:11px;line-height:1.5}.notice.show{display:block}.notice.warn{color:#854015;background:#fff1e5;border:1px solid #f2ceb3}.notice.info{color:#3d5170;background:#f1f6fc;border:1px solid #d9e6f5}.explain{padding:17px 19px;margin-top:16px}.explain p{margin:7px 0 0;color:#4e5c72;font-size:13px}.explain strong{color:var(--ink)}
+@media(max-width:1050px){.layout{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.controls{grid-row:span 2}}
+@media(max-width:650px){.shell{padding:15px 9px 22px}.visual{padding:7px}.side{grid-template-columns:1fr}.controls{grid-row:auto}.visual-head{align-items:flex-start;flex-direction:column;gap:3px}.status{text-align:left}.legend{gap:8px 12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <p class="eyebrow">Интерактивная модель волновой оптики</p>
+  <h1>Принцип Гюйгенса — Френеля</h1>
+  <p class="intro">Два когерентных вторичных источника, интерференция сферических волн и формирование огибающих волновых фронтов. Отражение и преломление показаны одновременно на одной схеме.</p>
+</header>
+<main class="layout">
+  <section class="panel visual" aria-labelledby="visualTitle">
+    <div class="visual-head"><strong id="visualTitle">Единая волновая картина</strong><span class="status" id="runStatus" aria-live="polite">Анимация запущена · 1,00×</span></div>
+    <div class="canvas-wrap"><canvas id="scene" width="1000" height="620" role="img" aria-label="Два падающих луча, вторичные полукруговые волны, интерференционные полосы, отражённый и преломлённый фронты"></canvas></div>
+    <div class="legend" aria-label="Обозначения">
+      <span class="legend-item"><i class="swatch" style="border-color:#2878c8"></i>Падающие лучи и фронт</span>
+      <span class="legend-item"><i class="swatch" style="border-color:#d97726"></i>Отражённые волны и огибающая</span>
+      <span class="legend-item"><i class="swatch" style="border-color:#7756c9"></i>Преломлённые волны и огибающая</span>
+      <span class="legend-item"><i class="swatch dashed" style="border-color:#fff"></i>Сферические волновые фронты</span>
+    </div>
+    <p class="caption">Интерференционные полосы показывают усреднённую интенсивность двух когерентных источников. Длина волны условно увеличена для наглядности; размеры схемы не соответствуют масштабу видимого света.</p>
+  </section>
+  <aside class="side">
+    <section class="panel controls" aria-labelledby="controlsTitle">
+      <h2 id="controlsTitle">Параметры и анимация</h2>
+      <div class="field">
+        <div class="field-head"><label for="angle">Угол падения θᵢ</label><output id="angleOut">35°</output></div>
+        <input id="angle" type="range" min="1" max="75" step="1" value="35"><div class="limits"><span>1°</span><span>75°</span></div>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="n1">Показатель среды 1, n₁</label><output id="n1Out">1,00</output></div>
+        <input id="n1" type="range" min="1" max="2.5" step="0.01" value="1"><div class="limits"><span>1,00</span><span>2,50</span></div>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="n2">Показатель среды 2, n₂</label><output id="n2Out">1,50</output></div>
+        <input id="n2" type="range" min="1" max="2.5" step="0.01" value="1.5"><div class="limits"><span>1,00</span><span>2,50</span></div>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="wavelength">Длина волны λ₀ (условная)</label><output id="wavelengthOut">48 усл. ед.</output></div>
+        <input id="wavelength" type="range" min="28" max="70" step="1" value="48"><div class="limits"><span>28</span><span>70</span></div>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="speed">Скорость анимации</label><output id="speedOut">1,00×</output></div>
+        <input id="speed" type="range" min="0.25" max="3" step="0.05" value="1"><div class="limits"><span>0,25×</span><span>3,00×</span></div>
+      </div>
+      <div class="rule"></div>
+      <h3 style="font-size:13px;margin:0 0 9px">Слои визуализации</h3>
+      <div class="checks">
+        <label class="check"><input id="showInterference" type="checkbox" checked> Интерференционная картина</label>
+        <label class="check"><input id="showWavelets" type="checkbox" checked> Сферические вторичные волны</label>
+        <label class="check"><input id="showRays" type="checkbox" checked> Все лучи распространения</label>
+        <label class="check"><input id="showEnvelopes" type="checkbox" checked> Новые фронты — огибающие</label>
+      </div>
+      <div class="buttons"><button class="primary" id="playButton" type="button">Пауза</button><button class="secondary" id="resetButton" type="button">Сначала</button></div>
+    </section>
+    <section class="panel results" aria-labelledby="resultsTitle">
+      <h2 id="resultsTitle">Расчёт в реальном времени</h2>
+      <div class="result-line"><div class="result-label">Закон отражения</div><div class="result-value" id="reflectionResult">θᵣ = 35,0°</div></div>
+      <div class="result-line"><div class="result-label">Закон преломления</div><div class="result-value" id="refractionResult">θₜ = 22,5°</div></div>
+      <div class="result-line"><div class="result-label">Скорости волн</div><div class="result-value" id="speedResult">v₁ = 1,00c; v₂ = 0,67c</div></div>
+      <div class="formula" id="formulaBox">n₁ sin θᵢ = n₂ sin θₜ<br>Δt = d sin θᵢ / v₁<br>I ∝ 1 + cos(Δφ)</div>
+      <div class="notice warn" id="tirNotice" role="status"></div>
+      <div class="notice info show" id="modelNotice">Касательные к вторичным волнам задают направление нового фронта. Интерференционные полосы соответствуют сложению полей двух когерентных источников.</div>
+    </section>
+  </aside>
+</main>
+<section class="panel explain">
+  <h2>Физический смысл построения</h2>
+  <p>Две точки <strong>A₁</strong> и <strong>A₂</strong> представляют соседние участки освещённой границы. Фаза возбуждения второй точки запаздывает на время <strong>Δt = d sin θᵢ / v₁</strong>, где <strong>d</strong> — расстояние между точками. Поэтому радиусы соответствующих вторичных волн различаются на <strong>v₁Δt</strong> при отражении и на <strong>v₂Δt</strong> при преломлении. Общие касательные к волнам дают огибающие, геометрия которых приводит к θᵣ = θᵢ и n₁ sin θᵢ = n₂ sin θₜ.</p>
+  <p>Модель показывает интерференцию двух скалярных когерентных волн и геометрию принципа Гюйгенса—Френеля. Она не рассчитывает поляризацию, коэффициенты Френеля и распределение энергии на границе; при полном внутреннем отражении затухающая эванесцентная волна во второй среде не моделируется.</p>
+</section>
+</div>
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const fieldCanvas = document.createElement('canvas');
+  fieldCanvas.width = 500; fieldCanvas.height = 310;
+  const fctx = fieldCanvas.getContext('2d');
+  const fieldImage = fctx.createImageData(fieldCanvas.width, fieldCanvas.height);
+  const $ = id => document.getElementById(id);
+  const angleInput = $('angle'), n1Input = $('n1'), n2Input = $('n2'), wavelengthInput = $('wavelength'), speedInput = $('speed');
+  const showInterference = $('showInterference'), showWavelets = $('showWavelets'), showRays = $('showRays'), showEnvelopes = $('showEnvelopes');
+  const playButton = $('playButton'), resetButton = $('resetButton');
+  const TAU = Math.PI * 2, W = 1000, H = 620, Y0 = 310;
+  const x1 = 402, x2 = 490, d = x2 - x1;
+  const C1 = {x:x1,y:Y0}, C2 = {x:x2,y:Y0};
+  const COLORS = {blue:'#2878c8', orange:'#d97726', purple:'#7756c9', ink:'#243249', grey:'#728096'};
+  let playing = true, rafId = 0, lastFrame = 0, simTime = 0;
+  let cachedKey = '';
+  const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+  const mod = (x,m) => ((x % m) + m) % m;
+  const fmt = (x,n=2) => Number(x).toLocaleString('ru-RU',{minimumFractionDigits:n,maximumFractionDigits:n});
+  const deg = x => x*180/Math.PI;
+  function state(){
+    const theta = Number(angleInput.value)*Math.PI/180;
+    const n1 = Number(n1Input.value), n2 = Number(n2Input.value), lambda = Number(wavelengthInput.value);
+    const sinT = (n1/n2)*Math.sin(theta);
+    const tir = sinT > 1 + 1e-8;
+    const critical = n1 > n2 ? Math.asin(clamp(n2/n1,0,1)) : null;
+    return {theta,n1,n2,lambda,sinT,tir,critical,thetaT:Math.asin(clamp(sinT,-1,1)),v1:1/n1,v2:1/n2,delay:d*n1*Math.sin(theta)};
+  }
+  function setTransform(){
+    const dpr = Math.max(1,Math.min(2,window.devicePixelRatio||1));
+    const targetW = Math.round(W*dpr), targetH = Math.round(H*dpr);
+    if(canvas.width!==targetW || canvas.height!==targetH){canvas.width=targetW;canvas.height=targetH;}
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function computeField(s){
+    const key = [s.theta,s.n1,s.n2,s.lambda,s.tir,showInterference.checked].join('|');
+    if(key===cachedKey)return;
+    cachedKey=key;
+    const pixels=fieldImage.data, k0=TAU/s.lambda;
+    for(let iy=0;iy<fieldCanvas.height;iy++){
+      for(let ix=0;ix<fieldCanvas.width;ix++){
+        const x=ix*2+1, y=iy*2+1;
+        const upper = y < Y0;
+        const idx=(iy*fieldCanvas.width+ix)*4;
+        let r,g,b;
+        if(upper || !s.tir){
+          const n = upper ? s.n1 : s.n2;
+          const rr1=Math.hypot(x-x1,y-Y0), rr2=Math.hypot(x-x2,y-Y0);
+          const phase = -k0*s.delay - k0*n*(rr2-rr1);
+          const I=showInterference.checked ? 0.5+0.5*Math.cos(phase) : 0;
+          if(upper){
+            r=Math.round(239-(239-111)*I);g=Math.round(247-(247-170)*I);b=Math.round(255-(255-232)*I);
+          }else{
+            r=Math.round(255-(255-178)*I);g=Math.round(245-(245-153)*I);b=Math.round(232-(232-224)*I);
+          }
+        }else{
+          r=251;g=243;b=230;
+        }
+        pixels[idx]=r;pixels[idx+1]=g;pixels[idx+2]=b;pixels[idx+3]=255;
+      }
+    }
+    fctx.putImageData(fieldImage,0,0);
+  }
+  function line(a,b,color,width=1.5,dash=[],alpha=1){
+    ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore();
+  }
+  function dot(p,r,color,stroke='#fff',sw=1.5){ctx.beginPath();ctx.arc(p.x,p.y,r,0,TAU);ctx.fillStyle=color;ctx.fill();ctx.lineWidth=sw;ctx.strokeStyle=stroke;ctx.stroke();}
+  function text(str,x,y,color='#33435a',size=12,align='left',weight=650){
+    ctx.save();ctx.font=`${weight} ${size}px system-ui, -apple-system, Segoe UI, Arial, sans-serif`;ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.lineJoin='round';ctx.lineWidth=4;ctx.strokeStyle='rgba(255,255,255,.92)';ctx.strokeText(str,x,y);ctx.fillStyle=color;ctx.fillText(str,x,y);ctx.restore();
+  }
+  function arrow(a,b,color,width=2){
+    line(a,b,color,width);
+    const ang=Math.atan2(b.y-a.y,b.x-a.x), size=9;
+    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-size*Math.cos(ang-.43),b.y-size*Math.sin(ang-.43));ctx.lineTo(b.x-size*Math.cos(ang+.43),b.y-size*Math.sin(ang+.43));ctx.closePath();ctx.fillStyle=color;ctx.fill();
+  }
+  function circleArc(center,r,upper,color,alpha=0.7,width=1.5){
+    if(r<1)return;
+    ctx.save();ctx.globalAlpha=alpha;ctx.beginPath();
+    if(upper)ctx.arc(center.x,center.y,r,Math.PI,TAU,false);
+    else ctx.arc(center.x,center.y,r,0,Math.PI,false);
+    ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();ctx.restore();
+  }
+  function angleArc(center,r,start,end,color,labelStr,labelAngle){
+    ctx.save();ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(center.x,center.y,r,start,end,false);ctx.stroke();
+    text(labelStr,center.x+(r+13)*Math.cos(labelAngle),center.y+(r+13)*Math.sin(labelAngle),color,11,'center',800);ctx.restore();
+  }
+  function drawIncoming(s,phase){
+    const th=s.theta, u={x:Math.sin(th),y:Math.cos(th)};
+    if(showRays.checked){
+      [C1,C2].forEach((C)=>{
+        const start={x:C.x-178*u.x,y:C.y-178*u.y};
+        arrow(start,C,COLORS.blue,2.1);
+      });
+    }
+    // Each blue front is perpendicular to the incident rays; several crests move toward the interface.
+    const lambda1=s.lambda/s.n1;
+    const nearest=(s.lambda-mod(phase,s.lambda))/s.n1;
+    for(let k=0;k<4;k++){
+      const l=nearest+k*lambda1;
+      const A={x:C1.x-l*u.x,y:C1.y-l*u.y};
+      const B={x:C2.x-(l+d*Math.sin(th))*u.x,y:C2.y-(l+d*Math.sin(th))*u.y};
+      if(A.y<35 || B.y<35)continue;
+      line(A,B,COLORS.blue,k===0?2.3:1.25,k===0?[]:[4,4],k===0?0.9:0.42);
+    }
+    text('Падающий фронт',x1-22,Y0-174,COLORS.blue,11,'center',750);
+    if(showRays.checked){
+      text('луч 1',x1-85,Y0-105,COLORS.blue,10,'center',650);
+      text('луч 2',x2-85,Y0-105,COLORS.blue,10,'center',650);
+    }
+  }
+  function drawRayBranches(s){
+    const th=s.theta;
+    [C1,C2].forEach((C)=>{
+      const incomingStart={x:C.x-153*Math.sin(th),y:C.y-153*Math.cos(th)};
+      // Rays are drawn over the field but under the secondary wavelets.
+      // The incoming arrow is already visible; only the two outgoing branches are added here.
+      const reflectedEnd={x:C.x+165*Math.sin(th),y:C.y-165*Math.cos(th)};
+      arrow(C,reflectedEnd,COLORS.orange,1.9);
+      if(!s.tir){
+        const tt=s.thetaT;
+        const transEnd={x:C.x+165*Math.sin(tt),y:C.y+165*Math.cos(tt)};
+        arrow(C,transEnd,COLORS.purple,1.9);
+      }
+    });
+    // Keep one legend-like ray label near each outgoing family without obscuring the envelope.
+    text('Отражённые лучи',x2+63,Y0-119,'#b65e1e',10,'left',750);
+    if(!s.tir)text('Преломлённые лучи',x2+42,Y0+145,'#6644b8',10,'left',750);
+  }
+  function tangentPoints(Ca,Cb,ra,rb,theta,upper){
+    const nx=Math.sin(theta), ny=upper?-Math.cos(theta):Math.cos(theta);
+    return [{x:Ca.x+ra*nx,y:Ca.y+ra*ny},{x:Cb.x+rb*nx,y:Cb.y+rb*ny}];
+  }
+  function drawBranchWaves(s,upper,phase,showEnvelopes){
+    const n=upper?s.n1:s.n2, v=1/n, theta=upper?s.theta:s.thetaT;
+    const delay=s.delay, c=upper?COLORS.orange:COLORS.purple;
+    const phaseB=mod(phase-delay,s.lambda);
+    const lambdaM=s.lambda/n;
+    const maxR=268;
+    const pairCount=Math.max(0,Math.ceil((maxR-v*phaseB)/lambdaM));
+    // Individual circular wavefronts from both coherent points.
+    if(showWavelets.checked){
+      const phaseA=mod(phase,s.lambda);
+      for(let k=0;k<Math.ceil(maxR/lambdaM);k++){
+        const ra=v*(phaseA+k*s.lambda);
+        const rb=v*(phaseB+k*s.lambda);
+        if(ra<=maxR)circleArc(C1,ra,upper,c,Math.max(.22,.67-.025*k),k===0?1.8:1.25);
+        if(rb<=maxR)circleArc(C2,rb,upper,c,Math.max(.22,.67-.025*k),k===0?1.8:1.25);
+      }
+    }
+    if(showEnvelopes){
+      let drawn=0;
+      for(let k=0;k<pairCount && drawn<8;k++){
+        const rb=v*(phaseB+k*s.lambda), ra=rb+v*delay;
+        if(ra>maxR || rb>maxR)continue;
+        const [p1,p2]=tangentPoints(C1,C2,ra,rb,theta,upper);
+        const tangent=upper?{x:Math.cos(theta),y:Math.sin(theta)}:{x:Math.cos(theta),y:-Math.sin(theta)};
+        const extension=95;
+        line({x:p1.x-extension*tangent.x,y:p1.y-extension*tangent.y},{x:p2.x+extension*tangent.x,y:p2.y+extension*tangent.y},c,k===0?2.8:1.35,k===0?[]:[5,5],k===0?.98:.5);
+        drawn++;
+      }
+    }
+  }
+  function drawOverlay(s,phase){
+    // Medium labels and interface.
+    text(`Среда 1 · n₁ = ${fmt(s.n1)} · v₁ = ${fmt(s.v1)}c`,18,27,'#42668d',13,'left',750);
+    text(`Среда 2 · n₂ = ${fmt(s.n2)} · v₂ = ${fmt(s.v2)}c`,18,602,'#8e6740',13,'left',750);
+    ctx.save();ctx.strokeStyle='#303b4e';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(0,Y0);ctx.lineTo(W,Y0);ctx.stroke();
+    for(let x=12;x<W;x+=22){ctx.beginPath();ctx.moveTo(x,Y0-4);ctx.lineTo(x-5,Y0+4);ctx.strokeStyle='#c5ccd6';ctx.lineWidth=1;ctx.stroke();}ctx.restore();
+    // The normal and the source points are physical reference geometry.
+    line({x:x1,y:Y0-240},{x:x1,y:Y0+240},'#7b8798',1.2,[5,5],.8);
+    text('нормаль',x1+8,Y0-218,'#6d7a8e',10,'left',600);
+    dot(C1,5,COLORS.ink);dot(C2,5,COLORS.ink);
+    text('A₁',x1-2,Y0+19,COLORS.ink,12,'center',800);text('A₂',x2+2,Y0+19,COLORS.ink,12,'center',800);
+    const th=s.theta;
+    angleArc(C1,34,-Math.PI/2-th,-Math.PI/2,COLORS.blue,'θᵢ',-Math.PI/2-th/2);
+    angleArc(C1,34,-Math.PI/2,-Math.PI/2+th,COLORS.orange,'θᵣ',-Math.PI/2+th/2);
+    if(!s.tir){
+      const tt=s.thetaT;
+      angleArc(C1,39,Math.PI/2-tt,Math.PI/2,COLORS.purple,'θₜ',Math.PI/2-tt/2);
+    }
+    if(s.tir){
+      ctx.save();ctx.fillStyle='rgba(255,244,231,.88)';ctx.strokeStyle='#ebc6a8';ctx.lineWidth=1;
+      ctx.beginPath();ctx.roundRect(630,385,340,105,10);ctx.fill();ctx.stroke();ctx.restore();
+      text('Полное внутреннее отражение',648,411,'#8a431b',13,'left',800);
+      text('Преломлённого луча и бегущего',648,435,'#8a431b',11,'left',600);
+      text('фронта нет; эванесцентное поле',648,453,'#8a431b',11,'left',600);
+      text('в этой модели не рассчитывается.',648,471,'#8a431b',11,'left',600);
+    }
+    text(`Δt = ${fmt(s.delay,1)} усл. ед.`,18,55,'#596981',11,'left',650);
+  }
+  function draw(s){
+    setTransform();
+    const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.drawImage(fieldCanvas,0,0,W,H);
+    const phase=simTime;
+    drawIncoming(s,mod(phase,s.lambda));
+    if(showRays.checked)drawRayBranches(s);
+    drawBranchWaves(s,true,phase,showEnvelopes.checked);
+    if(!s.tir)drawBranchWaves(s,false,phase,showEnvelopes.checked);
+    drawOverlay(s,phase);
+    $('runStatus').textContent = `${playing?'Анимация запущена':'Анимация на паузе'} · ${fmt(Number(speedInput.value),2)}×`;
+  }
+  function updateResults(s){
+    $('angleOut').textContent=`${angleInput.value}°`;
+    $('n1Out').textContent=fmt(s.n1);$('n2Out').textContent=fmt(s.n2);
+    $('wavelengthOut').textContent=`${s.lambda} усл. ед.`;
+    $('speedOut').textContent=`${fmt(Number(speedInput.value),2)}×`;
+    $('reflectionResult').textContent=`θᵣ = ${fmt(deg(s.theta),1)}°`;
+    $('speedResult').textContent=`v₁ = ${fmt(s.v1,2)}c; v₂ = ${fmt(s.v2,2)}c`;
+    const tirNotice=$('tirNotice'), modelNotice=$('modelNotice');
+    tirNotice.className='notice';
+    if(s.tir){
+      $('refractionResult').textContent=`n₁ sin θᵢ / n₂ = ${fmt(s.sinT,3)} > 1`;
+      $('formulaBox').innerHTML=`n₁ sin θᵢ = n₂ sin θₜ<br>sin θₜ = ${fmt(s.sinT,3)} &gt; 1<br>θкр = ${fmt(deg(s.critical),1)}°<br>I ∝ 1 + cos(Δφ)`;
+      tirNotice.textContent=`Полное внутреннее отражение: θᵢ превышает критический угол ${fmt(deg(s.critical),1)}°. Распространяющегося преломлённого фронта нет.`;
+      tirNotice.classList.add('show');
+      modelNotice.textContent='Отражённая огибающая сохраняется. Во второй среде распространяющиеся сферические волны не показаны; эванесцентное поле требует отдельной электромагнитной модели.';
+    }else{
+      $('refractionResult').textContent=`θₜ = ${fmt(deg(s.thetaT),1)}°`;
+      $('formulaBox').innerHTML=`θᵣ = θᵢ<br>n₁ sin θᵢ = n₂ sin θₜ<br>Δt = d sin θᵢ / v₁<br>I ∝ 1 + cos(Δφ)`;
+      if(s.critical){modelNotice.textContent=`Критический угол для этих сред: θкр = ${fmt(deg(s.critical),1)}°. При θᵢ выше него возникает полное внутреннее отражение.`;}
+      else modelNotice.textContent='При n₁ ≤ n₂ полное внутреннее отражение для света, падающего из среды 1, не возникает.';
+    }
+    modelNotice.classList.add('show');
+  }
+  function refresh(recompute=true){
+    const s=state();
+    if(recompute){cachedKey='';computeField(s);}
+    updateResults(s);draw(s);
+  }
+  function frame(timestamp){
+    if(!playing){rafId=0;return;}
+    if(!lastFrame)lastFrame=timestamp;
+    const elapsed=Math.min(50,timestamp-lastFrame);lastFrame=timestamp;
+    const s=state();
+    // Simulation time is measured in the same scaled distance units as the diagram.
+    simTime += elapsed*0.06*Number(speedInput.value);
+    // Prevent numeric growth while preserving all animated phase relationships.
+    if(simTime>1e7)simTime=mod(simTime,s.lambda)+s.delay;
+    draw(s);
+    rafId=requestAnimationFrame(frame);
+  }
+  function play(){
+    playing=!playing;
+    playButton.textContent=playing?'Пауза':'Продолжить';
+    lastFrame=0;
+    if(playing && !rafId)rafId=requestAnimationFrame(frame);
+    if(!playing && rafId){cancelAnimationFrame(rafId);rafId=0;}
+    refresh(false);
+  }
+  [angleInput,n1Input,n2Input,wavelengthInput].forEach(input=>input.addEventListener('input',()=>{
+    const s=state();simTime=s.delay;refresh(true);
+  }));
+  speedInput.addEventListener('input',()=>{updateResults(state());$('runStatus').textContent=`${playing?'Анимация запущена':'Анимация на паузе'} · ${fmt(Number(speedInput.value),2)}×`;});
+  [showInterference].forEach(el=>el.addEventListener('change',()=>refresh(true)));
+  [showWavelets,showRays,showEnvelopes].forEach(el=>el.addEventListener('change',()=>refresh(false)));
+  playButton.addEventListener('click',play);
+  resetButton.addEventListener('click',()=>{simTime=state().delay;refresh(false);});
+  window.addEventListener('resize',()=>{draw(state());});
+  const initial=state();simTime=initial.delay;computeField(initial);updateResults(initial);draw(initial);
+  rafId=requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
