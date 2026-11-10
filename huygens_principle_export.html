@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Принцип Гюйгенса — непрерывная модель</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17253b;
+      --muted: #66758b;
+      --line: #dce4ee;
+      --paper: #fff;
+      --page: #eef3f8;
+      --blue: #2878c8;
+      --red: #cb5964;
+      --gold: #d88718;
+      --violet: #8065c8;
+      --green: #16866b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    .page { width: min(1240px, calc(100% - 28px)); margin: 26px auto 42px; }
+    h1 { margin: 0 0 18px; font-size: clamp(1.7rem, 3.5vw, 2.5rem); letter-spacing: -.035em; }
+    .panel, .info-card {
+      border: 1px solid var(--line); border-radius: 16px; background: var(--paper);
+      box-shadow: 0 10px 28px rgba(31,54,82,.06);
+    }
+    .panel { overflow: hidden; }
+    .panel-heading { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:16px 20px 12px; }
+    .panel-heading h2 { margin:0; font-size:1.05rem; }
+    .time-state { color:var(--muted); font-size:.83rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .canvas-wrap { padding: 0 12px; }
+    canvas { display:block; width:100%; height:auto; aspect-ratio:1100 / 620; border:1px solid #e0e8f0; border-radius:12px; background:#f8fbfe; }
+    .controls { display:grid; grid-template-columns: auto auto auto minmax(220px,1fr) minmax(180px,.65fr); gap:12px; align-items:end; padding:16px 20px; }
+    button { min-height:40px; padding:8px 14px; border:1px solid #cbd7e5; border-radius:9px; background:#fff; color:var(--ink); font:inherit; font-size:.9rem; font-weight:650; cursor:pointer; }
+    button:hover { background:#f4f8fc; border-color:#9fb4cb; }
+    button.primary { background:var(--blue); border-color:var(--blue); color:#fff; }
+    button.primary:hover { background:#1f69b3; }
+    .control-group { min-width:0; }
+    .control-label { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:5px; color:#53647a; font-size:.78rem; font-weight:650; }
+    .control-label output { color:var(--ink); font-variant-numeric:tabular-nums; font-weight:750; }
+    input[type="range"] { width:100%; display:block; accent-color:var(--blue); cursor:pointer; }
+    input[type="number"] { min-width:0; width:100%; padding:6px 8px; border:1px solid #d5dfeb; border-radius:8px; color:var(--ink); background:#fff; font:inherit; font-size:.86rem; font-variant-numeric:tabular-nums; }
+    input:focus-visible, button:focus-visible { outline:2px solid rgba(40,120,200,.35); outline-offset:2px; }
+    .time-entry { display:grid; grid-template-columns:minmax(0,1fr) 98px; gap:10px; align-items:center; }
+    .minor-labels { display:flex; justify-content:space-between; margin-top:2px; color:#8895a7; font-size:.68rem; }
+    .settings { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:0 20px 15px; }
+    .setting { border:1px solid #e1e7ef; border-radius:10px; padding:10px 11px; background:#fbfcfe; min-width:0; }
+    .setting-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; font-size:.8rem; font-weight:650; color:#53647a; }
+    .setting-title input[type=number] { width:82px; text-align:right; }
+    .normal-toggles { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:0 20px 15px; }
+    .normal-toggles > strong { color:#53647a; font-size:.8rem; margin-right:2px; }
+    .toggle { display:inline-flex; align-items:center; gap:6px; padding:6px 9px; border:1px solid #dfe6ef; border-radius:8px; background:#fbfcfe; color:#42546c; font-size:.8rem; cursor:pointer; }
+    .toggle input { accent-color:var(--blue); }
+    .status { display:flex; gap:9px; align-items:flex-start; margin:0 20px 16px; padding:10px 12px; border-radius:9px; background:#f2f6fb; color:#53647a; font-size:.83rem; }
+    .status-dot { width:8px; height:8px; flex:0 0 8px; margin-top:5px; border-radius:50%; background:var(--green); }
+    .legend { display:flex; flex-wrap:wrap; gap:10px 18px; padding:0 20px 17px; color:#596a80; font-size:.78rem; }
+    .legend-item { display:inline-flex; align-items:center; gap:7px; }
+    .swatch { display:inline-block; width:22px; height:3px; border-radius:3px; background:currentColor; }
+    .swatch.dashed { height:0; border-top:2px dashed currentColor; background:none; }
+    .below-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:16px; margin-top:17px; }
+    .info-card { padding:17px 19px; }
+    .info-card h2 { margin:0 0 8px; font-size:1rem; }
+    .info-card p { margin:7px 0; color:#53647a; font-size:.86rem; }
+    .formula { margin:10px 0; padding:9px 12px; border-left:3px solid var(--blue); border-radius:5px; background:#f4f8fc; color:#203957; font-family:Georgia,"Times New Roman",serif; text-align:center; font-size:1.05rem; }
+    .note { color:#7a8798 !important; font-size:.77rem !important; }
+
+    .export-panel {
+      margin-top: 17px; padding: 18px 20px; border: 1px solid var(--line);
+      border-radius: 16px; background: var(--paper); box-shadow: 0 10px 28px rgba(31,54,82,.06);
+    }
+    .export-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .export-heading h2 { margin:0; font-size:1.05rem; }
+    .export-heading p { margin:0; color:var(--muted); font-size:.78rem; }
+    .export-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .export-tool { min-width:0; padding:14px; border:1px solid #e1e7ef; border-radius:12px; background:#fbfcfe; }
+    .export-tool h3 { margin:0 0 5px; font-size:.92rem; }
+    .export-tool > p { margin:0 0 12px; color:#66758b; font-size:.8rem; }
+    .export-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .export-actions button { min-height:38px; }
+    .export-tool button:disabled { cursor:not-allowed; opacity:.48; }
+    .record-status, .frame-status { display:block; margin-top:10px; min-height:1.2em; color:#53647a; font-size:.78rem; }
+    .record-status.recording { color:#b94452; font-weight:750; }
+    .frame-settings { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:10px 0 12px; }
+    .frame-settings label { display:block; min-width:0; color:#53647a; font-size:.75rem; font-weight:650; }
+    .frame-settings input { display:block; width:100%; margin-top:4px; }
+    .frame-settings small { display:block; margin-top:3px; color:#8895a7; font-size:.68rem; font-weight:400; }
+    .frame-progress { width:100%; height:7px; margin-top:8px; border:0; border-radius:9px; overflow:hidden; accent-color:var(--blue); }
+    .export-footnote { margin:12px 0 0; color:#7a8798; font-size:.74rem; }
+    @media (max-width:760px) { .export-grid { grid-template-columns:1fr; } }
+    @media (max-width:620px) {
+      .export-panel { padding:14px 12px; }
+      .export-heading { display:block; }
+      .export-heading p { margin-top:4px; }
+      .frame-settings { grid-template-columns:1fr 1fr 1fr; gap:6px; }
+    }
+
+    @media (max-width:900px) { .controls { grid-template-columns:repeat(3,auto); } .control-group { grid-column:span 1; } .below-grid { grid-template-columns:1fr; } }
+    @media (max-width:620px) {
+      .page { width:calc(100% - 14px); margin-top:14px; }
+      .panel-heading { padding-inline:12px; }
+      .canvas-wrap { padding-inline:6px; }
+      .controls { grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; padding:13px 12px; }
+      .controls button { padding-inline:5px; font-size:.78rem; }
+      .controls .control-group { grid-column:span 3; }
+      .settings { grid-template-columns:1fr; padding-inline:12px; }
+      .normal-toggles { padding-inline:12px; }
+      .status { margin-inline:12px; }
+      .legend { padding-inline:12px; }
+      .info-card { padding:14px; }
+      .time-entry { grid-template-columns:minmax(0,1fr) 84px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>Принцип Гюйгенса</h1>
+    <section class="panel" aria-label="Непрерывная интерактивная модель принципа Гюйгенса">
+      <div class="panel-heading">
+        <h2>Падение, отражение и преломление волны</h2>
+        <span class="time-state" id="cycleOutput">Цикл 0 · фаза 0,00 с</span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="scene" width="1100" height="620" aria-label="Падающие, отражённые и преломлённые лучи, углы и вторичные волны"></canvas>
+      </div>
+
+      <div class="controls">
+        <button id="playButton" class="primary" type="button">▶ Пуск</button>
+        <button id="pauseButton" type="button">Ⅱ Пауза</button>
+        <button id="resetButton" type="button">↺ Сброс</button>
+
+        <div class="control-group">
+          <label class="control-label" for="timeSlider"><span>Время модели t</span><output id="timeOutput">0,00 с</output></label>
+          <div class="time-entry">
+            <input id="timeSlider" type="range" min="0" max="12" step="0.01" value="0">
+            <input id="timeNumber" type="number" min="0" step="0.01" value="0" aria-label="Установить время модели в секундах">
+          </div>
+          <div class="minor-labels"><span>0 с</span><span id="timeMaxLabel">12,00 с</span></div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="speedSlider"><span>Скорость времени</span><output id="speedOutput">0,65×</output></label>
+          <input id="speedSlider" type="range" min="0.10" max="2.50" step="0.05" value="0.65">
+          <div class="minor-labels"><span>медленнее</span><span>быстрее</span></div>
+        </div>
+      </div>
+
+      <div class="settings" aria-label="Настройка временных параметров">
+        <div class="setting">
+          <div class="setting-title"><label for="impact1">Время падения луча 1, t₁</label><input id="impactNum1" type="number" min="0.05" max="1.20" step="0.05" value="0.20"></div>
+          <input id="impact1" type="range" min="0.05" max="1.20" step="0.05" value="0.20">
+          <div class="minor-labels"><span>0,05 с</span><span>1,20 с</span></div>
+        </div>
+        <div class="setting">
+          <div class="setting-title"><label for="impact2">Время падения луча 2, t₂</label><input id="impactNum2" type="number" min="0.25" max="1.40" step="0.05" value="0.50"></div>
+          <input id="impact2" type="range" min="0.25" max="1.40" step="0.05" value="0.50">
+          <div class="minor-labels"><span>после t₁</span><span>1,40 с</span></div>
+        </div>
+        <div class="setting">
+          <div class="setting-title"><label for="impact3">Время падения луча 3, t₃</label><input id="impactNum3" type="number" min="0.55" max="1.60" step="0.05" value="0.90"></div>
+          <input id="impact3" type="range" min="0.55" max="1.60" step="0.05" value="0.90">
+          <div class="minor-labels"><span>после t₂</span><span>1,60 с</span></div>
+        </div>
+        <div class="setting">
+          <div class="setting-title"><label for="periodSlider">Период повторения фронта, T</label><input id="periodNumber" type="number" min="1.70" max="8.00" step="0.05" value="2.20"></div>
+          <input id="periodSlider" type="range" min="1.70" max="8.00" step="0.05" value="2.20">
+          <div class="minor-labels"><span id="periodMinLabel">1,70 с</span><span>8,00 с</span></div>
+        </div>
+      </div>
+
+      <div class="normal-toggles" aria-label="Отображение нормалей">
+        <strong>Нормали:</strong>
+        <label class="toggle"><input id="normal1" type="checkbox" checked> Луч 1</label>
+        <label class="toggle"><input id="normal2" type="checkbox" checked> Луч 2</label>
+        <label class="toggle"><input id="normal3" type="checkbox" checked> Луч 3</label>
+      </div>
+
+      <div class="status" role="status" aria-live="polite"><span class="status-dot"></span><span id="statusText">Нажмите «Пуск», чтобы начать распространение волнового поезда.</span></div>
+      <div class="legend" aria-label="Обозначения">
+        <span class="legend-item" style="color:#2878c8"><i class="swatch"></i> Падающий луч</span>
+        <span class="legend-item" style="color:#cb5964"><i class="swatch"></i> Отражённый луч</span>
+        <span class="legend-item" style="color:#d88718"><i class="swatch"></i> Преломлённый луч</span>
+        <span class="legend-item" style="color:#8065c8"><i class="swatch"></i> Вторичные волны</span>
+        <span class="legend-item" style="color:#718096"><i class="swatch dashed"></i> Нормаль</span>
+      </div>
+    </section>
+
+
+    <section class="export-panel" aria-label="Запись и покадровый экспорт анимации">
+      <div class="export-heading">
+        <h2>Съёмка и экспорт</h2>
+        <p>Видео всей анимации или архив отдельных кадров</p>
+      </div>
+      <div class="export-grid">
+        <div class="export-tool">
+          <h3>Запись видео</h3>
+          <p>Записывает изображение Canvas в реальном времени. При начале записи анимация запускается автоматически.</p>
+          <div class="export-actions">
+            <button id="recordButton" class="primary" type="button">● Начать запись</button>
+            <button id="stopRecordButton" type="button" disabled>■ Остановить запись</button>
+          </div>
+          <span id="recordStatus" class="record-status" role="status">Формат файла будет выбран браузером (обычно WebM).</span>
+        </div>
+        <div class="export-tool">
+          <h3>Покадровая съёмка</h3>
+          <p>Сохраняет кадры для выбранного диапазона модельного времени в ZIP-архив вместе с манифестом и временными метками.</p>
+          <div class="frame-settings">
+            <label for="frameStart">Начало, с
+              <input id="frameStart" type="number" min="0" step="0.1" value="0">
+              <small>Первый кадр</small>
+            </label>
+            <label for="frameEnd">Конец, с
+              <input id="frameEnd" type="number" min="0" step="0.1" value="5">
+              <small>Последний кадр</small>
+            </label>
+            <label for="frameStep">Шаг, с
+              <input id="frameStep" type="number" min="0.01" max="60" step="0.01" value="0.2">
+              <small>Интервал между кадрами</small>
+            </label>
+          </div>
+          <div class="export-actions">
+            <button id="captureFramesButton" class="primary" type="button">Снять кадры и сохранить ZIP</button>
+          </div>
+          <progress id="frameProgress" class="frame-progress" max="100" value="0" hidden></progress>
+          <span id="frameStatus" class="frame-status" role="status">Будет создано до 500 PNG-кадров за одну съёмку.</span>
+        </div>
+      </div>
+      <p class="export-footnote">Для записи видео используйте актуальную версию Chrome, Edge, Firefox или Safari. Покадровый экспорт сохраняет PNG-изображения и файл manifest.json с фактическим временем каждого кадра и параметрами модели.</p>
+    </section>
+
+    <section class="below-grid">
+      <article class="info-card">
+        <h2>Углы и геометрия волны</h2>
+        <p>У каждого места падения своя нормаль. Угол падения θᵢ и угол отражения θᵣ показаны в первой среде; угол преломления θₜ — во второй среде. Индекс у обозначения угла соответствует номеру луча.</p>
+        <div class="formula">θᵢ = θᵣ &nbsp;&nbsp; и &nbsp;&nbsp; n₁ sin θᵢ = n₂ sin θₜ</div>
+        <p>Окружности в первой среде показывают вторичные волны, формирующие отражённый фронт; окружности во второй среде — вторичные волны, формирующие преломлённый фронт.</p>
+      </article>
+      <article class="info-card">
+        <h2>Непрерывность анимации</h2>
+        <p>Модель представляет периодический поезд плоских волновых фронтов. После завершения трёх касаний приходит следующий фронт через период T. Поэтому анимация не имеет конечного времени остановки.</p>
+        <p>При больших t отображается несколько последних циклов. В стационарном режиме видимая картина повторяется с периодом T и зависит от фазы t mod T; количество объектов в расчёте не растёт бесконечно.</p>
+        <p class="note">Это геометрическая модель волновых фронтов и лучей, а не численный расчёт интенсивности или интерференции комплексных амплитуд.</p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const MODEL = {
+      width: 1100,
+      height: 620,
+      boundaryY: 310,
+      v1: 240,
+      v2: 180,
+      anchorX: 630,
+      anchorTime: 0.50,
+      period: 2.20,
+      incident: { x: -0.8, y: 0.6 },
+      reflected: { x: -0.8, y: -0.6 },
+      refracted: { x: -0.6, y: 0.8 },
+      reflectedTangent: { x: 0.6, y: -0.8 },
+      refractedTangent: { x: 0.8, y: 0.6 }
+    };
+
+    const impacts = [
+      { id: 1, time: 0.20, color: "#8065c8" },
+      { id: 2, time: 0.50, color: "#7257ba" },
+      { id: 3, time: 0.90, color: "#9a7bd5" }
+    ];
+
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+    const playButton = document.getElementById("playButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const resetButton = document.getElementById("resetButton");
+    const timeSlider = document.getElementById("timeSlider");
+    const timeNumber = document.getElementById("timeNumber");
+    const speedSlider = document.getElementById("speedSlider");
+    const periodSlider = document.getElementById("periodSlider");
+    const periodNumber = document.getElementById("periodNumber");
+    const timeOutput = document.getElementById("timeOutput");
+    const speedOutput = document.getElementById("speedOutput");
+    const cycleOutput = document.getElementById("cycleOutput");
+    const timeMaxLabel = document.getElementById("timeMaxLabel");
+    const periodMinLabel = document.getElementById("periodMinLabel");
+    const statusText = document.getElementById("statusText");
+    const impactSliders = impacts.map(p => document.getElementById(`impact${p.id}`));
+    const impactNumbers = impacts.map(p => document.getElementById(`impactNum${p.id}`));
+    const normalChecks = impacts.map(p => document.getElementById(`normal${p.id}`));
+
+    // Экспорт видео и последовательностей кадров.
+    const recordButton = document.getElementById("recordButton");
+    const stopRecordButton = document.getElementById("stopRecordButton");
+    const recordStatus = document.getElementById("recordStatus");
+    const captureFramesButton = document.getElementById("captureFramesButton");
+    const frameStartInput = document.getElementById("frameStart");
+    const frameEndInput = document.getElementById("frameEnd");
+    const frameStepInput = document.getElementById("frameStep");
+    const frameProgress = document.getElementById("frameProgress");
+    const frameStatus = document.getElementById("frameStatus");
+    let mediaRecorder = null;
+    let mediaStream = null;
+    let recordingChunks = [];
+    let captureInProgress = false;
+
+    let currentTime = 0;
+    let playbackSpeed = Number(speedSlider.value);
+    let isPlaying = false;
+    let previousFrame = null;
+    let scaleX = 1;
+    let scaleY = 1;
+    let timelineMax = Number(timeSlider.max);
+
+    const sub = ["₁", "₂", "₃"];
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const fmt = (v, digits = 2) => Number(v).toLocaleString("ru-RU", {
+      minimumFractionDigits: digits, maximumFractionDigits: digits
+    });
+
+    function rebuildGeometry() {
+      impacts.forEach(p => {
+        p.x = MODEL.anchorX - (MODEL.v1 / 0.8) * (p.time - MODEL.anchorTime);
+        p.end = { x: p.x, y: MODEL.boundaryY };
+        p.start = {
+          x: p.x - MODEL.v1 * MODEL.incident.x * p.time,
+          y: MODEL.boundaryY - MODEL.v1 * MODEL.incident.y * p.time
+        };
+      });
+    }
+
+    function syncImpactControls() {
+      const mins = [0.05, impacts[0].time + 0.05, impacts[1].time + 0.05];
+      const maxs = [1.20, 1.40, 1.60];
+      impacts.forEach((p, i) => {
+        impactSliders[i].min = mins[i].toFixed(2);
+        impactSliders[i].max = maxs[i].toFixed(2);
+        impactSliders[i].value = p.time.toFixed(2);
+        impactNumbers[i].min = mins[i].toFixed(2);
+        impactNumbers[i].max = maxs[i].toFixed(2);
+        impactNumbers[i].value = p.time.toFixed(2);
+      });
+      const minimumPeriod = impacts[2].time + 0.10;
+      periodSlider.min = minimumPeriod.toFixed(2);
+      periodNumber.min = minimumPeriod.toFixed(2);
+      periodMinLabel.textContent = `${fmt(minimumPeriod)} с`;
+      if (MODEL.period < minimumPeriod) MODEL.period = minimumPeriod;
+      periodSlider.value = MODEL.period.toFixed(2);
+      periodNumber.value = MODEL.period.toFixed(2);
+    }
+
+    function resetForChangedParameters() {
+      isPlaying = false;
+      currentTime = 0;
+      previousFrame = null;
+      rebuildGeometry();
+      syncImpactControls();
+      render();
+    }
+
+    function setImpactTime(index, raw) {
+      let value = Number(raw);
+      if (!Number.isFinite(value)) { syncImpactControls(); return; }
+      value = Math.round(value / 0.05) * 0.05;
+      if (index === 0) {
+        impacts[0].time = clamp(value, 0.05, 1.20);
+        impacts[1].time = Math.max(impacts[1].time, impacts[0].time + 0.05);
+        impacts[2].time = Math.max(impacts[2].time, impacts[1].time + 0.05);
+      } else if (index === 1) {
+        impacts[1].time = clamp(value, impacts[0].time + 0.05, 1.40);
+        impacts[2].time = Math.max(impacts[2].time, impacts[1].time + 0.05);
+      } else {
+        impacts[2].time = clamp(value, impacts[1].time + 0.05, 1.60);
+      }
+      resetForChangedParameters();
+    }
+
+    function setPeriod(raw) {
+      const min = impacts[2].time + 0.10;
+      const value = Number(raw);
+      if (!Number.isFinite(value)) { syncImpactControls(); return; }
+      MODEL.period = clamp(Math.round(value / 0.05) * 0.05, min, 8.00);
+      resetForChangedParameters();
+    }
+
+    function ensureTimelineRange(t) {
+      if (t > timelineMax - 2) {
+        timelineMax = Math.max(timelineMax + 10, Math.ceil((t + 10) / 10) * 10);
+        timeSlider.max = String(timelineMax);
+      }
+      timeMaxLabel.textContent = `${fmt(timelineMax)} с`;
+    }
+
+    function setModelTime(raw, pause = true) {
+      const value = Number(raw);
+      if (!Number.isFinite(value) || value < 0) return;
+      currentTime = value;
+      if (pause) isPlaying = false;
+      previousFrame = null;
+      ensureTimelineRange(currentTime);
+      render();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      scaleX = canvas.width / MODEL.width;
+      scaleY = canvas.height / MODEL.height;
+      drawScene();
+    }
+
+    function drawText(text, x, y, color = "#53647a", size = 13, weight = 600, align = "left") {
+      ctx.fillStyle = color;
+      ctx.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
+      ctx.textAlign = align;
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(text, x, y);
+      ctx.textAlign = "left";
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width = 2.8, head = 10, alpha = 1) {
+      const dx = x2 - x1, dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      if (len < 4) return;
+      const a = Math.atan2(dy, dx);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - head * Math.cos(a - Math.PI / 6), y2 - head * Math.sin(a - Math.PI / 6));
+      ctx.lineTo(x2 - head * Math.cos(a + Math.PI / 6), y2 - head * Math.sin(a + Math.PI / 6));
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, MODEL.width, MODEL.height);
+      ctx.fillStyle = "#f7fbff";
+      ctx.fillRect(0, 0, MODEL.width, MODEL.boundaryY);
+      ctx.fillStyle = "#eef7f4";
+      ctx.fillRect(0, MODEL.boundaryY, MODEL.width, MODEL.height - MODEL.boundaryY);
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(82,112,145,.07)";
+      ctx.lineWidth = 1;
+      for (let x = 40; x < MODEL.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MODEL.height); ctx.stroke(); }
+      for (let y = 40; y < MODEL.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MODEL.width, y); ctx.stroke(); }
+      ctx.restore();
+
+      drawText("СРЕДА 1", 24, 32, "#45617f", 13, 800);
+      drawText(`v₁ = ${MODEL.v1} усл. ед./с`, 24, 52, "#73849a", 12, 600);
+      drawText("СРЕДА 2", 24, MODEL.boundaryY + 29, "#3d7869", 13, 800);
+      drawText(`v₂ = ${MODEL.v2} усл. ед./с`, 24, MODEL.boundaryY + 49, "#6b9388", 12, 600);
+
+      ctx.strokeStyle = "#64758b"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, MODEL.boundaryY); ctx.lineTo(MODEL.width, MODEL.boundaryY); ctx.stroke();
+      ctx.fillStyle = "#f7fbff"; ctx.fillRect(25, MODEL.boundaryY - 18, 142, 16);
+      drawText("ГРАНИЦА СРЕД", 29, MODEL.boundaryY - 6, "#64758b", 10, 800);
+    }
+
+    function activeCycles() {
+      const latest = Math.floor(currentTime / MODEL.period);
+      const first = Math.max(0, latest - 4);
+      const cycles = [];
+      for (let k = first; k <= latest; k++) cycles.push(k);
+      return { latest, phase: currentTime - latest * MODEL.period, cycles };
+    }
+
+    function drawIncidentFront(latest, phase) {
+      if (phase >= impacts[2].time) return;
+      const first = impacts[0].start;
+      const last = impacts[2].start;
+      const p1 = { x: first.x + MODEL.incident.x * MODEL.v1 * phase, y: first.y + MODEL.incident.y * MODEL.v1 * phase };
+      const p3 = { x: last.x + MODEL.incident.x * MODEL.v1 * phase, y: last.y + MODEL.incident.y * MODEL.v1 * phase };
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, MODEL.width, MODEL.boundaryY); ctx.clip();
+      ctx.strokeStyle = "rgba(40,120,200,.72)"; ctx.lineWidth = 2.2; ctx.setLineDash([9, 7]);
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p3.x, p3.y); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawIncidentRays(phase) {
+      impacts.forEach(p => {
+        if (phase >= p.time) return;
+        const head = {
+          x: p.start.x + MODEL.incident.x * MODEL.v1 * phase,
+          y: p.start.y + MODEL.incident.y * MODEL.v1 * phase
+        };
+        ctx.save(); ctx.beginPath(); ctx.rect(0, 0, MODEL.width, MODEL.boundaryY); ctx.clip();
+        drawArrow(p.start.x, p.start.y, head.x, head.y, "#2878c8", 3, 10, 1);
+        ctx.restore();
+        ctx.beginPath(); ctx.arc(head.x, head.y, 4.8, 0, Math.PI * 2); ctx.fillStyle = "#2878c8"; ctx.fill();
+      });
+    }
+
+    function rayLength(origin, direction, region) {
+      const eps = 1e-9;
+      const candidates = [];
+      if (direction.x > eps) candidates.push((region.right - origin.x) / direction.x);
+      if (direction.x < -eps) candidates.push((region.left - origin.x) / direction.x);
+      if (direction.y > eps) candidates.push((region.bottom - origin.y) / direction.y);
+      if (direction.y < -eps) candidates.push((region.top - origin.y) / direction.y);
+      const valid = candidates.filter(v => v > 0 && Number.isFinite(v));
+      return valid.length ? Math.min(...valid) : 0;
+    }
+
+    const upperRegion = { left: 0, right: MODEL.width, top: 0, bottom: MODEL.boundaryY };
+    const lowerRegion = { left: 0, right: MODEL.width, top: MODEL.boundaryY, bottom: MODEL.height };
+
+    function drawPermanentRayPaths() {
+      impacts.forEach(p => {
+        if (currentTime < p.time) return;
+        const a = p.end;
+        const lr = rayLength(a, MODEL.reflected, upperRegion) - 10;
+        const lt = rayLength(a, MODEL.refracted, lowerRegion) - 10;
+        if (lr > 8) drawArrow(a.x, a.y, a.x + MODEL.reflected.x * lr, a.y + MODEL.reflected.y * lr, "#cb5964", 2.6, 10, 0.83);
+        if (lt > 8) drawArrow(a.x, a.y, a.x + MODEL.refracted.x * lt, a.y + MODEL.refracted.y * lt, "#d88718", 2.6, 10, 0.86);
+      });
+    }
+
+    function drawPulseMarker(x, y, color) {
+      ctx.save();
+      ctx.shadowColor = color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+      ctx.restore();
+    }
+
+    function drawMovingPulses(cycles) {
+      cycles.forEach(k => impacts.forEach(p => {
+        const eventTime = k * MODEL.period + p.time;
+        const age = currentTime - eventTime;
+        if (age < 0) return;
+        const reflectedDistance = MODEL.v1 * age;
+        const refractedDistance = MODEL.v2 * age;
+        const maxReflected = rayLength(p.end, MODEL.reflected, upperRegion);
+        const maxRefracted = rayLength(p.end, MODEL.refracted, lowerRegion);
+        if (reflectedDistance <= maxReflected) {
+          drawPulseMarker(p.x + MODEL.reflected.x * reflectedDistance, MODEL.boundaryY + MODEL.reflected.y * reflectedDistance, "#cb5964");
+        }
+        if (refractedDistance <= maxRefracted) {
+          drawPulseMarker(p.x + MODEL.refracted.x * refractedDistance, MODEL.boundaryY + MODEL.refracted.y * refractedDistance, "#d88718");
+        }
+      }));
+    }
+
+    function maxRadiusInRegion(origin, region) {
+      const corners = [
+        [region.left, region.top], [region.right, region.top],
+        [region.left, region.bottom], [region.right, region.bottom]
+      ];
+      return Math.max(...corners.map(([x, y]) => Math.hypot(x - origin.x, y - origin.y)));
+    }
+
+    function drawWavelet(origin, radius, region, color, alpha, dashed = false) {
+      if (radius < 2 || radius > maxRadiusInRegion(origin, region) + 2) return;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(region.left, region.top, region.right - region.left, region.bottom - region.top); ctx.clip();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color; ctx.lineWidth = 2.0;
+      if (dashed) ctx.setLineDash([5, 5]);
+      ctx.beginPath(); ctx.arc(origin.x, origin.y, radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawSecondaryWaves(cycles) {
+      cycles.forEach(k => {
+        impacts.forEach((p, i) => {
+          const eventTime = k * MODEL.period + p.time;
+          const age = currentTime - eventTime;
+          if (age < 0) return;
+          const opacity = k === Math.floor(currentTime / MODEL.period) ? 0.66 : 0.30;
+          drawWavelet(p.end, MODEL.v1 * age, upperRegion, p.color, opacity * 0.70, true);
+          drawWavelet(p.end, MODEL.v2 * age, lowerRegion, p.color, opacity, false);
+        });
+      });
+    }
+
+    function clipInfiniteLine(point, direction, region) {
+      let tMin = -Infinity, tMax = Infinity;
+      const eps = 1e-9;
+      if (Math.abs(direction.x) < eps) {
+        if (point.x < region.left || point.x > region.right) return null;
+      } else {
+        const a = (region.left - point.x) / direction.x;
+        const b = (region.right - point.x) / direction.x;
+        tMin = Math.max(tMin, Math.min(a, b));
+        tMax = Math.min(tMax, Math.max(a, b));
+      }
+      if (Math.abs(direction.y) < eps) {
+        if (point.y < region.top || point.y > region.bottom) return null;
+      } else {
+        const a = (region.top - point.y) / direction.y;
+        const b = (region.bottom - point.y) / direction.y;
+        tMin = Math.max(tMin, Math.min(a, b));
+        tMax = Math.min(tMax, Math.max(a, b));
+      }
+      if (tMin > tMax) return null;
+      return [
+        { x: point.x + direction.x * tMin, y: point.y + direction.y * tMin },
+        { x: point.x + direction.x * tMax, y: point.y + direction.y * tMax }
+      ];
+    }
+
+    function drawEnvelopeLine(point, tangent, region, color, width, alpha, dash = []) {
+      const endpoints = clipInfiniteLine(point, tangent, region);
+      if (!endpoints) return;
+      ctx.save();
+      ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
+      if (dash.length) ctx.setLineDash(dash);
+      ctx.beginPath(); ctx.moveTo(endpoints[0].x, endpoints[0].y); ctx.lineTo(endpoints[1].x, endpoints[1].y); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawWavefrontEnvelopes(cycles) {
+      cycles.forEach(k => {
+        if (currentTime < k * MODEL.period + impacts[2].time) return;
+        const referenceImpact = impacts[1];
+        const elapsed = currentTime - (k * MODEL.period + referenceImpact.time);
+        const reflectedPoint = {
+          x: referenceImpact.x + MODEL.reflected.x * MODEL.v1 * elapsed,
+          y: MODEL.boundaryY + MODEL.reflected.y * MODEL.v1 * elapsed
+        };
+        const refractedPoint = {
+          x: referenceImpact.x + MODEL.refracted.x * MODEL.v2 * elapsed,
+          y: MODEL.boundaryY + MODEL.refracted.y * MODEL.v2 * elapsed
+        };
+        drawEnvelopeLine(reflectedPoint, MODEL.reflectedTangent, upperRegion, "#cb5964", 2.8, 0.62, [8, 5]);
+        drawEnvelopeLine(refractedPoint, MODEL.refractedTangent, lowerRegion, "#d88718", 3.1, 0.82);
+      });
+    }
+
+    function drawNormalAndAngles() {
+      impacts.forEach((p, i) => {
+        if (currentTime < p.time) return;
+        const x = p.x, y = MODEL.boundaryY;
+        if (normalChecks[i].checked) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(77,94,116,.68)"; ctx.lineWidth = 1.45; ctx.setLineDash([5, 5]);
+          ctx.beginPath(); ctx.moveTo(x, y - 84); ctx.lineTo(x, y + 84); ctx.stroke();
+          ctx.restore();
+          drawText(`n${sub[i]}`, x + 7, y - 76, "#637389", 10, 700);
+        }
+
+        const thetaI = Math.atan2(0.8, 0.6); // 53,13°: угол с нормалью первой среды
+        const thetaT = Math.atan2(0.6, 0.8); // 36,87°: угол с нормалью второй среды
+        const ai = -Math.PI / 2;
+        const aIncident = -thetaI;
+        const aReflected = -Math.PI / 2 - thetaI;
+        const aDown = Math.PI / 2;
+        const aRefracted = aDown + thetaT;
+
+        ctx.save();
+        ctx.lineWidth = 2.0;
+        ctx.strokeStyle = "#2878c8";
+        ctx.beginPath(); ctx.arc(x, y, 24, ai, aIncident, false); ctx.stroke();
+        ctx.strokeStyle = "#cb5964";
+        ctx.beginPath(); ctx.arc(x, y, 31, aReflected, ai, false); ctx.stroke();
+        ctx.strokeStyle = "#d88718";
+        ctx.beginPath(); ctx.arc(x, y, 26, aDown, aRefracted, false); ctx.stroke();
+        ctx.restore();
+
+        // Подписи смещены от дуг и несут индекс соответствующего луча.
+        drawText(`θᵢ${sub[i]}`, x + 29, y - 35, "#2878c8", 10, 800);
+        drawText(`θᵣ${sub[i]}`, x - 33, y - 43, "#b64b55", 10, 800, "right");
+        drawText(`θₜ${sub[i]}`, x - 10, y + 48, "#a8640d", 10, 800, "center");
+      });
+    }
+
+    function drawContactPoints() {
+      impacts.forEach((p, i) => {
+        if (currentTime < p.time) return;
+        ctx.beginPath(); ctx.arc(p.x, MODEL.boundaryY, 5.2, 0, Math.PI * 2);
+        ctx.fillStyle = p.color; ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, MODEL.boundaryY, 9, 0, Math.PI * 2);
+        ctx.strokeStyle = p.color; ctx.globalAlpha = 0.48; ctx.lineWidth = 1.2; ctx.stroke(); ctx.globalAlpha = 1;
+      });
+    }
+
+    function drawScene() {
+      if (!ctx) return;
+      ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+      drawBackground();
+      const { latest, phase, cycles } = activeCycles();
+      drawIncidentFront(latest, phase);
+      drawSecondaryWaves(cycles);
+      drawWavefrontEnvelopes(cycles);
+      drawPermanentRayPaths();
+      drawIncidentRays(phase);
+      drawMovingPulses(cycles);
+      drawContactPoints();
+      drawNormalAndAngles();
+    }
+
+
+    function setExportControls() {
+      const recording = !!mediaRecorder && mediaRecorder.state !== "inactive";
+      recordButton.disabled = recording || captureInProgress;
+      stopRecordButton.disabled = !recording;
+      captureFramesButton.disabled = recording || captureInProgress;
+      const locked = [playButton, pauseButton, resetButton, timeSlider, timeNumber, speedSlider,
+        periodSlider, periodNumber, frameStartInput, frameEndInput, frameStepInput,
+        ...impactSliders, ...impactNumbers, ...normalChecks];
+      locked.forEach(control => { control.disabled = captureInProgress; });
+      if (!captureInProgress) {
+        playButton.disabled = isPlaying;
+        pauseButton.disabled = !isPlaying;
+      }
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 15000);
+    }
+
+    function fileStamp() {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, "0");
+      return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    }
+
+    function getRecordingMimeType() {
+      if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return "";
+      const candidates = [
+        "video/webm;codecs=vp9",
+        "video/webm;codecs=vp8",
+        "video/webm",
+        "video/mp4"
+      ];
+      return candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
+    }
+
+    function startVideoRecording() {
+      if (captureInProgress) return;
+      if (!canvas.captureStream || !window.MediaRecorder) {
+        recordStatus.textContent = "Запись видео не поддерживается этим браузером. Используйте актуальный Chrome, Edge, Firefox или Safari.";
+        return;
+      }
+      try {
+        mediaStream = canvas.captureStream(30);
+        const mimeType = getRecordingMimeType();
+        const options = { videoBitsPerSecond: 5_000_000 };
+        if (mimeType) options.mimeType = mimeType;
+        mediaRecorder = new MediaRecorder(mediaStream, options);
+        recordingChunks = [];
+        mediaRecorder.addEventListener("dataavailable", event => {
+          if (event.data && event.data.size > 0) recordingChunks.push(event.data);
+        });
+        mediaRecorder.addEventListener("error", event => {
+          recordStatus.textContent = `Ошибка записи: ${event.error?.message || "не удалось записать видео"}.`;
+          recordStatus.classList.remove("recording");
+        });
+        mediaRecorder.addEventListener("stop", () => {
+          const actualType = mediaRecorder?.mimeType || mimeType || "video/webm";
+          const extension = actualType.includes("mp4") ? "mp4" : "webm";
+          const blob = new Blob(recordingChunks, { type: actualType });
+          if (blob.size > 0) {
+            downloadBlob(blob, `huygens_animation_${fileStamp()}.${extension}`);
+            recordStatus.textContent = `Запись сохранена (${(blob.size / 1024 / 1024).toFixed(2)} МБ).`;
+          } else {
+            recordStatus.textContent = "Запись завершилась без данных. Попробуйте запустить её ещё раз.";
+          }
+          if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+          mediaStream = null;
+          mediaRecorder = null;
+          recordingChunks = [];
+          recordStatus.classList.remove("recording");
+          setExportControls();
+        });
+        mediaRecorder.start(1000);
+        recordStatus.textContent = "Идёт запись видео… нажмите «Остановить запись», чтобы сохранить файл.";
+        recordStatus.classList.add("recording");
+        isPlaying = true;
+        previousFrame = null;
+        render();
+        setExportControls();
+      } catch (error) {
+        if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+        mediaRecorder = null;
+        recordStatus.classList.remove("recording");
+        recordStatus.textContent = `Не удалось начать запись: ${error.message || error}`;
+        setExportControls();
+      }
+    }
+
+    function stopVideoRecording() {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        recordStatus.textContent = "Завершение записи и подготовка видеофайла…";
+        mediaRecorder.stop();
+      }
+    }
+
+    function canvasToPngBlob() {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error("Canvas не смог сформировать PNG-кадр."));
+        }, "image/png");
+      });
+    }
+
+    function nextPaint() {
+      return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+
+    // ZIP без внешних библиотек: PNG уже сжат, поэтому используется метод ZIP Store.
+    const zipCrcTable = (() => {
+      const table = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        table[n] = c >>> 0;
+      }
+      return table;
+    })();
+
+    function crc32(bytes) {
+      let crc = 0xFFFFFFFF;
+      for (let i = 0; i < bytes.length; i++) crc = zipCrcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function zipTimestamp(date = new Date()) {
+      const time = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+      const day = ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+      return { time, day };
+    }
+
+    function makeZip(entries) {
+      const encoder = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      const stamp = zipTimestamp();
+      let offset = 0;
+
+      entries.forEach(entry => {
+        const name = encoder.encode(entry.name);
+        const data = entry.data instanceof Uint8Array ? entry.data : new Uint8Array(entry.data);
+        const crc = crc32(data);
+        const local = new Uint8Array(30 + name.length);
+        const lv = new DataView(local.buffer);
+        lv.setUint32(0, 0x04034B50, true);
+        lv.setUint16(4, 20, true);
+        lv.setUint16(6, 0x0800, true);
+        lv.setUint16(8, 0, true);
+        lv.setUint16(10, stamp.time, true);
+        lv.setUint16(12, stamp.day, true);
+        lv.setUint32(14, crc, true);
+        lv.setUint32(18, data.length, true);
+        lv.setUint32(22, data.length, true);
+        lv.setUint16(26, name.length, true);
+        lv.setUint16(28, 0, true);
+        local.set(name, 30);
+        localParts.push(local, data);
+
+        const central = new Uint8Array(46 + name.length);
+        const cv = new DataView(central.buffer);
+        cv.setUint32(0, 0x02014B50, true);
+        cv.setUint16(4, 20, true);
+        cv.setUint16(6, 20, true);
+        cv.setUint16(8, 0x0800, true);
+        cv.setUint16(10, 0, true);
+        cv.setUint16(12, stamp.time, true);
+        cv.setUint16(14, stamp.day, true);
+        cv.setUint32(16, crc, true);
+        cv.setUint32(20, data.length, true);
+        cv.setUint32(24, data.length, true);
+        cv.setUint16(28, name.length, true);
+        cv.setUint16(30, 0, true);
+        cv.setUint16(32, 0, true);
+        cv.setUint16(34, 0, true);
+        cv.setUint16(36, 0, true);
+        cv.setUint32(38, 0, true);
+        cv.setUint32(42, offset, true);
+        central.set(name, 46);
+        centralParts.push(central);
+        offset += local.length + data.length;
+      });
+
+      const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+      const end = new Uint8Array(22);
+      const ev = new DataView(end.buffer);
+      ev.setUint32(0, 0x06054B50, true);
+      ev.setUint16(4, 0, true);
+      ev.setUint16(6, 0, true);
+      ev.setUint16(8, entries.length, true);
+      ev.setUint16(10, entries.length, true);
+      ev.setUint32(12, centralSize, true);
+      ev.setUint32(16, offset, true);
+      ev.setUint16(20, 0, true);
+      return new Blob([...localParts, ...centralParts, end], { type: "application/zip" });
+    }
+
+    async function captureFrameSequence() {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        frameStatus.textContent = "Сначала остановите запись видео.";
+        return;
+      }
+      const start = Number(frameStartInput.value);
+      const end = Number(frameEndInput.value);
+      const step = Number(frameStepInput.value);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(step) || start < 0 || end < start || step <= 0) {
+        frameStatus.textContent = "Проверьте диапазон времени и шаг съёмки.";
+        return;
+      }
+      const count = Math.ceil((end - start) / step - 1e-10) + 1;
+      if (count > 500) {
+        frameStatus.textContent = `Получится ${count} кадров. Увеличьте шаг: за одну съёмку разрешено не более 500 кадров.`;
+        return;
+      }
+
+      const savedTime = currentTime;
+      const wasPlaying = isPlaying;
+      const frameRecords = [];
+      const entries = [];
+      captureInProgress = true;
+      isPlaying = false;
+      previousFrame = null;
+      frameProgress.hidden = false;
+      frameProgress.max = count;
+      frameProgress.value = 0;
+      frameStatus.textContent = `Подготовка: 0 из ${count} кадров…`;
+      render();
+      setExportControls();
+
+      try {
+        for (let i = 0; i < count; i++) {
+          const modelTime = Math.min(start + i * step, end);
+          currentTime = modelTime;
+          ensureTimelineRange(currentTime);
+          render();
+          await nextPaint();
+          const blob = await canvasToPngBlob();
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          const filename = `frames/frame_${String(i + 1).padStart(5, "0")}_t_${modelTime.toFixed(3)}s.png`;
+          entries.push({ name: filename, data: bytes });
+          frameRecords.push({
+            index: i + 1,
+            model_time_seconds: Number(modelTime.toFixed(6)),
+            filename,
+            width_px: canvas.width,
+            height_px: canvas.height,
+            size_bytes: blob.size
+          });
+          frameProgress.value = i + 1;
+          frameStatus.textContent = `Снято ${i + 1} из ${count} кадров (${Math.round((i + 1) / count * 100)}%).`;
+        }
+
+        const manifest = {
+          title: "Кадры анимации принципа Гюйгенса",
+          created_at: new Date().toISOString(),
+          capture: {
+            start_time_seconds: start,
+            end_time_seconds: end,
+            requested_step_seconds: step,
+            frame_count: frameRecords.length,
+            image_format: "PNG",
+            canvas_width_px: canvas.width,
+            canvas_height_px: canvas.height
+          },
+          model: {
+            speed_medium_1_units_per_second: MODEL.v1,
+            speed_medium_2_units_per_second: MODEL.v2,
+            period_seconds: MODEL.period,
+            impact_times_seconds: impacts.map(p => p.time)
+          },
+          frames: frameRecords
+        };
+        entries.push({ name: "manifest.json", data: new TextEncoder().encode(JSON.stringify(manifest, null, 2)) });
+        entries.push({
+          name: "README.txt",
+          data: new TextEncoder().encode(
+            "Архив покадровой съёмки анимации принципа Гюйгенса.\n" +
+            "Каталог frames содержит PNG-изображения. Файл manifest.json связывает каждый кадр с модельным временем и содержит параметры модели.\n" +
+            "Кадры сняты при фиксированных значениях времени модели, а не с фиксированной частотой реального времени.\n"
+          )
+        });
+        const archive = makeZip(entries);
+        downloadBlob(archive, `huygens_frames_${fileStamp()}.zip`);
+        frameStatus.textContent = `Готово: ${frameRecords.length} PNG-кадров сохранены в ZIP-архиве (${(archive.size / 1024 / 1024).toFixed(2)} МБ).`;
+      } catch (error) {
+        frameStatus.textContent = `Ошибка покадровой съёмки: ${error.message || error}`;
+      } finally {
+        currentTime = savedTime;
+        isPlaying = wasPlaying;
+        previousFrame = null;
+        captureInProgress = false;
+        frameProgress.hidden = true;
+        render();
+        setExportControls();
+      }
+    }
+
+    function updateInterface() {
+      timeOutput.textContent = `${fmt(currentTime)} с`;
+      timeNumber.value = String(Number(currentTime.toFixed(3)));
+      if (Math.abs(Number(timeSlider.value) - currentTime) > 0.006) timeSlider.value = String(currentTime);
+      speedOutput.textContent = `${fmt(playbackSpeed, 2)}×`;
+      const { latest, phase } = activeCycles();
+      cycleOutput.textContent = `Цикл ${latest + 1} · фаза ${fmt(phase)} с`;
+      playButton.style.opacity = isPlaying ? ".55" : "1";
+      pauseButton.style.opacity = isPlaying ? "1" : ".55";
+      setExportControls();
+
+      const passed = impacts.filter(p => phase >= p.time).length;
+      const cycleStart = latest * MODEL.period;
+      if (passed === 0) {
+        statusText.textContent = `Цикл ${latest + 1}: падающий фронт движется к границе. До первого касания ${(impacts[0].time - phase).toFixed(2)} с.`;
+      } else if (passed === 1) {
+        statusText.textContent = `Цикл ${latest + 1}: первый луч уже породил отражённую и преломлённую волны; оставшиеся лучи приближаются к границе.`;
+      } else if (passed === 2) {
+        statusText.textContent = `Цикл ${latest + 1}: два луча достигли границы. Вторичные волны распространяются в обеих средах.`;
+      } else {
+        statusText.textContent = `Цикл ${latest + 1}: все три луча достигли границы; падающий фронт этого цикла исчез. Следующий фронт начнётся через ${fmt(Math.max(0, MODEL.period - phase))} с.`;
+      }
+      if (currentTime > 0) statusText.textContent += ` Время модели: ${fmt(currentTime)} с.`;
+      ensureTimelineRange(currentTime);
+    }
+
+    function render() { drawScene(); updateInterface(); }
+
+    function animationLoop(timestamp) {
+      if (previousFrame === null) previousFrame = timestamp;
+      const delta = Math.min((timestamp - previousFrame) / 1000, 0.05);
+      previousFrame = timestamp;
+      if (isPlaying) {
+        currentTime += delta * playbackSpeed;
+        ensureTimelineRange(currentTime);
+        render();
+      }
+      requestAnimationFrame(animationLoop);
+    }
+
+    playButton.addEventListener("click", () => {
+      isPlaying = true;
+      previousFrame = null;
+      render();
+    });
+    pauseButton.addEventListener("click", () => {
+      isPlaying = false;
+      previousFrame = null;
+      render();
+    });
+    resetButton.addEventListener("click", () => {
+      isPlaying = false;
+      currentTime = 0;
+      previousFrame = null;
+      render();
+    });
+    timeSlider.addEventListener("input", () => setModelTime(timeSlider.value, true));
+    timeNumber.addEventListener("change", () => {
+      if (timeNumber.value.trim() === "") { updateInterface(); return; }
+      setModelTime(timeNumber.value, true);
+    });
+    timeNumber.addEventListener("keydown", e => { if (e.key === "Enter") timeNumber.blur(); });
+    speedSlider.addEventListener("input", () => {
+      playbackSpeed = Number(speedSlider.value);
+      updateInterface();
+    });
+    impactSliders.forEach((input, i) => input.addEventListener("input", () => setImpactTime(i, input.value)));
+    impactNumbers.forEach((input, i) => {
+      input.addEventListener("change", () => {
+        if (input.value.trim() === "") { syncImpactControls(); return; }
+        setImpactTime(i, input.value);
+      });
+      input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
+    });
+    periodSlider.addEventListener("input", () => setPeriod(periodSlider.value));
+    periodNumber.addEventListener("change", () => {
+      if (periodNumber.value.trim() === "") { syncImpactControls(); return; }
+      setPeriod(periodNumber.value);
+    });
+    normalChecks.forEach(input => input.addEventListener("change", render));
+
+
+    recordButton.addEventListener("click", startVideoRecording);
+    stopRecordButton.addEventListener("click", stopVideoRecording);
+    captureFramesButton.addEventListener("click", captureFrameSequence);
+
+    if ("ResizeObserver" in window) new ResizeObserver(resizeCanvas).observe(canvas);
+    else window.addEventListener("resize", resizeCanvas);
+
+    rebuildGeometry();
+    syncImpactControls();
+    resizeCanvas();
+    render();
+    requestAnimationFrame(animationLoop);
+  </script>
+</body>
+</html>
